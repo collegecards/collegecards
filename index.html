@@ -1554,33 +1554,9 @@ function MyCollegesView({ boardIds, board, myStatus, onMoveStatus, onRemoveFromB
 }
 // ─── MAIN APP ──────────────────────────────────────────────────────────────
 // ─── ANALYTICS ────────────────────────────────────────────────────────────
-// Replace YOUR_POSTHOG_KEY with your actual key from posthog.com
-const PH_KEY = "phc_H7D4zcNr01nWiXk8frPVtcOkWVoetlEV3SiRHvEnh2c";
-const PH_HOST = "https://us.i.posthog.com";
-
-function initPostHog() {
-  if(window.__phLoaded || PH_KEY === "phc_H7D4zcNr01nWiXk8frPVtcOkWVoetlEV3SiRHvEnh2c") return;
-  window.__phLoaded = true;
-  // Load PostHog via script tag to avoid bundler issues
-  const script = document.createElement("script");
-  script.src = PH_HOST + "/static/array.js";
-  script.async = true;
-  script.onload = () => {
-    if(window.posthog) {
-      window.posthog.init(PH_KEY, {
-        api_host: PH_HOST,
-        persistence: "localStorage",
-        autocapture: false,
-      });
-    }
-  };
-  document.head.appendChild(script);
-}
-
+// Analytics — PostHog loaded via <head> snippet
 function track(event, props={}) {
   try {
-   if(window.__phLoaded || PH_KEY === "YOUR_POSTHOG_KEY") return;
-    if(PH_KEY === "YOUR_POSTHOG_KEY") return;
     const ph = window.posthog;
     if(ph && ph.capture) ph.capture(event, props);
   } catch(e) {}
@@ -1612,7 +1588,6 @@ function CollegeCards() {
 
   // Init analytics + track session start
   useEffect(() => {
-    initPostHog();
     track("session_start", {
       returning: !!localStorage.getItem("cc_visited"),
       last_visit: localStorage.getItem("cc_last_visit") || null,
