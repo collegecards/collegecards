@@ -1579,7 +1579,8 @@ function initPostHog() {
 
 function track(event, props={}) {
   try {
-    if(PH_KEY === "phc_H7D4zcNr01nWiXk8frPVtcOkWVoetlEV3SiRHvEnh2c") return;
+   if(window.__phLoaded || PH_KEY === "YOUR_POSTHOG_KEY") return;
+    if(PH_KEY === "YOUR_POSTHOG_KEY") return;
     const ph = window.posthog;
     if(ph && ph.capture) ph.capture(event, props);
   } catch(e) {}
