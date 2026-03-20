@@ -1551,11 +1551,11 @@ function MyCollegesView({ boardIds, board, myStatus, onMoveStatus, onRemoveFromB
 // ─── MAIN APP ──────────────────────────────────────────────────────────────
 // ─── ANALYTICS ────────────────────────────────────────────────────────────
 // Replace YOUR_POSTHOG_KEY with your actual key from posthog.com
-const PH_KEY = "YOUR_POSTHOG_KEY";
+const PH_KEY = "phc_H7D4zcNr01nWiXk8frPVtcOkWVoetlEV3SiRHvEnh2c";
 const PH_HOST = "https://us.i.posthog.com";
 
 function initPostHog() {
-  if(window.__phLoaded || PH_KEY === "YOUR_POSTHOG_KEY") return;
+  if(window.__phLoaded || PH_KEY === "phc_H7D4zcNr01nWiXk8frPVtcOkWVoetlEV3SiRHvEnh2c") return;
   window.__phLoaded = true;
   // Load PostHog via script tag to avoid bundler issues
   const script = document.createElement("script");
@@ -1575,7 +1575,7 @@ function initPostHog() {
 
 function track(event, props={}) {
   try {
-    if(PH_KEY === "YOUR_POSTHOG_KEY") return;
+    if(PH_KEY === "phc_H7D4zcNr01nWiXk8frPVtcOkWVoetlEV3SiRHvEnh2c") return;
     const ph = window.posthog;
     if(ph && ph.capture) ph.capture(event, props);
   } catch(e) {}
