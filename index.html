@@ -823,125 +823,97 @@ function CollegeCard({ school, flipped, onFlip, triageStatus, onSkip, onMaybe, o
         <div className="card-face" style={{
           border: "2px solid " + borderColor,
           boxShadow: "0 22px 70px rgba(0,0,0,0.62)",
+          overflow: "hidden",
+          display: "flex",
+          flexDirection: "column",
+          background: gradTo,
           isolation: "isolate",
-          transform: "translateZ(0)",
         }}>
-          {/* Shell clips content */}
-          <div style={{position:"absolute",inset:0,borderRadius:18,overflow:"hidden",background:"linear-gradient(180deg,"+hexToRgba(gradFrom,0.9)+" 0%,"+gradTo+" 100%)"}}>
-
-            {/* Hero — 66% height */}
-            <div style={{position:"absolute",inset:"0 0 auto 0",height:"66%",overflow:"hidden",borderRadius:"16px 16px 0 0"}}>
-              <div className={"scene-wrap"+(fading?" fading":"")} style={{position:"absolute",inset:0,transform:"scale(1.06)",transformOrigin:"50% 17%"}}><Scene/></div>
-              {/* Hero gradient overlay */}
-              <div style={{position:"absolute",inset:0,background:
-                "linear-gradient(180deg,rgba(0,0,0,0) 0%,"+
-                hexToRgba(gradFrom,0.06)+" 38%,"+
-                hexToRgba(gradFrom,0.24)+" 52%,"+
-                hexToRgba(primaryColor,0.55)+" 72%,"+
-                hexToRgba(primaryColor,0.92)+" 84%,"+
-                primaryColor+" 100%)"
-              }}/>
+          {/* HERO — fixed 230px, name overlaid at bottom */}
+          <div style={{flexShrink:0, height:230, position:"relative", overflow:"hidden"}}>
+            <div className={"scene-wrap"+(fading?" fading":"")} style={{position:"absolute",inset:0,transform:"scale(1.06)",transformOrigin:"50% 17%"}}><Scene/></div>
+            <div style={{position:"absolute",top:10,left:10,zIndex:3,background:"linear-gradient(180deg,#e4bd47,#cfa533)",color:"#2f230d",borderRadius:9,padding:"5px 10px 4px",lineHeight:1,boxShadow:"0 3px 10px rgba(0,0,0,0.28)"}}>
+              <div style={{fontFamily:"'Source Sans 3',sans-serif",fontWeight:800,fontSize:16,letterSpacing:"-0.01em"}}>{school.ranking}</div>
+              <div style={{fontFamily:"'Source Sans 3',sans-serif",fontWeight:700,fontSize:7,letterSpacing:"0.07em",textTransform:"uppercase",opacity:0.75,marginTop:2}}>{school.rankLabel}</div>
             </div>
-
-            {/* Body fade — lower 47% */}
-            <div style={{position:"absolute",left:0,right:0,bottom:0,height:"47%",background:
-              "linear-gradient(180deg,"+
-              hexToRgba(primaryColor,0)+" 0%,"+
-              primaryColor+" 14%,"+
-              hexToRgba(gradFrom,0.98)+" 34%,"+
-              hexToRgba(gradTo,0.98)+" 68%,"+
+            <div style={{position:"absolute",top:13,right:10,display:"flex",gap:5,zIndex:3}}>
+              {school.scenes.map((_,i)=>(
+                <div key={i} onClick={e=>{e.stopPropagation();setPhotoIdx(i);}} style={{width:7,height:7,borderRadius:"50%",background:i===photoIdx?"#e2bb47":"rgba(255,255,255,0.3)",cursor:"pointer"}}/>
+              ))}
+            </div>
+            <div style={{position:"absolute",inset:0,pointerEvents:"none",background:
+              "linear-gradient(180deg,rgba(0,0,0,0) 0%,"+
+              hexToRgba(primaryColor,0.1)+" 35%,"+
+              hexToRgba(primaryColor,0.6)+" 55%,"+
+              hexToRgba(primaryColor,0.92)+" 75%,"+
               gradTo+" 100%)"
             }}/>
+            <div style={{position:"absolute",bottom:8,left:13,right:13,zIndex:3,pointerEvents:"none"}}>
+              <div style={{fontFamily:"'Playfair Display',Georgia,serif",fontWeight:700,fontSize:30,lineHeight:1.0,color:"#FFF7ED",letterSpacing:"-0.01em",textShadow:"0 2px 12px rgba(0,0,0,0.6)"}}>{school.name}</div>
+            </div>
+          </div>
 
-            {/* Content layer */}
-            <div style={{position:"absolute",inset:0,display:"flex",flexDirection:"column",padding:"14px 16px 16px",zIndex:2}}>
-              {/* Top row */}
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexShrink:0}}>
-                <div style={{display:"inline-flex",flexDirection:"column",gap:2,padding:"9px 13px 8px",background:"linear-gradient(180deg,#e4bd47,#cfa533)",color:"#2f230d",borderRadius:11,boxShadow:"0 6px 16px rgba(0,0,0,0.2)",lineHeight:1}}>
-                  <span style={{fontFamily:"'Source Sans 3',sans-serif",fontWeight:800,fontSize:20,letterSpacing:"-0.005em"}}>{school.ranking}</span>
-                  <span style={{fontFamily:"'Source Sans 3',sans-serif",fontWeight:700,fontSize:8,letterSpacing:"0.08em",textTransform:"uppercase",opacity:0.78}}>{school.rankLabel}</span>
+          {/* BODY — flex:1 overflow:hidden — can never push buttons out */}
+          <div onClick={()=>onFlip(!flipped)} style={{flex:1,minHeight:0,overflow:"hidden",cursor:"pointer",background:gradTo,padding:"6px 13px 0"}}>
+            <div style={{fontFamily:"'Source Sans 3',sans-serif",fontWeight:600,fontSize:10,letterSpacing:"0.09em",textTransform:"uppercase",color:"#F3D06A",marginBottom:7,display:"flex",alignItems:"center",gap:5}}>
+              <span>{school.mascot}</span>{school.subtitle}
+            </div>
+            <div style={{fontFamily:"'Source Sans 3',sans-serif",fontWeight:700,fontSize:8,letterSpacing:"0.16em",textTransform:"uppercase",color:"#F1CF62",marginBottom:3}}>Claim to Fame</div>
+            <div style={{fontFamily:"'Playfair Display',Georgia,serif",fontWeight:600,fontSize:13,lineHeight:1.15,color:"#FFF4E8",marginBottom:8}}>{school.claim}</div>
+            <div style={{display:"grid",gap:5}}>
+              {school.vibes.map(v=>(
+                <div key={v.label} style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+                  <div style={{fontFamily:"'Source Sans 3',sans-serif",fontWeight:600,fontSize:11,color:"rgba(255,243,230,0.92)",display:"flex",alignItems:"center",gap:5,whiteSpace:"nowrap"}}>
+                    <span style={{width:15,textAlign:"center"}}>{v.icon}</span>{v.label}
+                  </div>
+                  <div style={{display:"flex",gap:4,flexShrink:0}}>
+                    {[1,2,3,4,5].map(i=>(
+                      <div key={i} style={{width:27,height:9,borderRadius:999,
+                        background:i<=v.value?"linear-gradient(180deg,#f8e38f,#cc9828)":"rgba(255,255,255,0.16)"
+                      }}/>
+                    ))}
+                  </div>
                 </div>
-                <div style={{display:"flex",gap:6,paddingTop:10,paddingRight:4}}>
-                  {school.scenes.map((_,i)=>(
-                    <div key={i} onClick={e=>{e.stopPropagation();setPhotoIdx(i);}} style={{width:8,height:8,borderRadius:999,background:i===photoIdx?"#e2bb47":"rgba(255,255,255,0.3)",cursor:"pointer"}}/>
-                  ))}
-                </div>
-              </div>
+              ))}
+            </div>
+          </div>
 
-              {/* Spacer — exactly like approved mockup */}
-              <div style={{flex:"1 1 auto",minHeight:192}} onClick={()=>onFlip(!flipped)}/>
-
-              {/* Name block */}
-              <div style={{pointerEvents:"none"}}>
-                <div style={{fontFamily:"'Playfair Display',Georgia,serif",fontWeight:700,fontSize:34,lineHeight:0.96,color:"#FFF7ED",letterSpacing:"-0.005em",textShadow:"0 3px 12px rgba(0,0,0,0.55)"}}>{school.name}</div>
-                <div style={{marginTop:6,display:"flex",alignItems:"center",gap:8,fontFamily:"'Source Sans 3',sans-serif",fontSize:12,fontWeight:600,letterSpacing:"0.095em",textTransform:"uppercase",color:"#F3D06A"}}>
-                  <span>{school.mascot}</span>{school.subtitle}
-                </div>
-              </div>
-
-              {/* Lower — claim + ratings + buttons */}
-              <div style={{paddingTop:12,pointerEvents:"none"}}>
-                <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:9,fontWeight:700,letterSpacing:"0.20em",textTransform:"uppercase",color:"#F1CF62",marginBottom:5}}>Claim to Fame</div>
-                <div style={{fontFamily:"'Playfair Display',Georgia,serif",fontSize:15,lineHeight:1.15,fontWeight:600,letterSpacing:"-0.015em",color:"#FFF4E8",marginBottom:12}}>{school.claim}</div>
-
-                {/* Ratings */}
-                <div style={{display:"grid",gap:8,marginBottom:12}}>
-                  {school.vibes.map(v=>(
-                    <div key={v.label} style={{display:"grid",gridTemplateColumns:"1fr auto",gap:10,alignItems:"center"}}>
-                      <div style={{display:"flex",alignItems:"center",gap:8,fontFamily:"'Source Sans 3',sans-serif",fontSize:13,fontWeight:600,color:"#FFF3E6",whiteSpace:"nowrap"}}>
-                        <span style={{width:18,textAlign:"center",fontSize:13}}>{v.icon}</span>{v.label}
-                      </div>
-                      <div style={{display:"flex",gap:5}}>
-                        {[1,2,3,4,5].map(i=>(
-                          <div key={i} style={{width:28,height:9,borderRadius:999,
-                            background:i<=v.value
-                              ?"linear-gradient(180deg,#f8e38f 0%,#e6c14d 55%,#cc9828 100%)"
-                              :"rgba(255,255,255,0.16)",
-                            boxShadow:i<=v.value?"inset 0 1px 0 rgba(255,255,255,0.28)":"inset 0 1px 0 rgba(255,255,255,0.12)"
-                          }}/>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Buttons */}
-                <div style={{display:"grid",gridTemplateColumns:"56px 1fr 1.22fr",gap:10,pointerEvents:"auto"}}>
-                  {triageStatus==="interested" ? (
-                    <button onClick={()=>onRemove()} style={{gridColumn:"1/-1",height:52,borderRadius:14,background:"linear-gradient(135deg,#f4dd85 0%,#e5c95b 46%,#d1a834 100%)",border:"none",color:"#241805",fontFamily:"'Source Sans 3',sans-serif",fontSize:13,fontWeight:700,cursor:"pointer"}}>
-                      ❤️ Interested · Remove
-                    </button>
-                  ) : (<>
-                    <button className="btn-skip" onClick={()=>onSkip()} style={{
-                      height:52,borderRadius:14,
-                      background:triageStatus==="skipped"?"linear-gradient(180deg,rgba(100,26,32,0.86),rgba(58,14,20,0.96))":"linear-gradient(180deg,rgba(20,18,24,0.94),rgba(12,11,17,0.96))",
-                      border:"1px solid "+(triageStatus==="skipped"?"rgba(205,78,88,0.9)":"rgba(255,255,255,0.10)"),
-                      cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:2
-                    }}>
-                      <span style={{fontSize:20,color:triageStatus==="skipped"?"#efb5b8":"rgba(255,220,220,0.62)",fontWeight:500,lineHeight:1}}>✕</span>
-                      <span style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:7,fontWeight:700,letterSpacing:"0.1em",color:triageStatus==="skipped"?"#efb5b8":"rgba(255,200,200,0.35)",marginTop:1}}>SKIP</span>
-                    </button>
-                    <button className="btn-maybe" onClick={()=>onMaybe()} style={{
-                      height:52,borderRadius:14,
-                      background:triageStatus==="maybe"?"linear-gradient(180deg,rgba(38,27,26,0.92),rgba(24,18,20,0.96))":"linear-gradient(180deg,rgba(20,18,24,0.94),rgba(12,11,17,0.96))",
-                      border:"1px solid "+(triageStatus==="maybe"?"rgba(233,196,88,0.78)":"rgba(255,255,255,0.10)"),
-                      color:triageStatus==="maybe"?"#e9c458":"rgba(235,230,236,0.88)",
-                      fontFamily:"'Source Sans 3',sans-serif",fontSize:13,fontWeight:700,cursor:"pointer"
-                    }}>
-                      🤷 {triageStatus==="maybe"?"Maybe ✓":"Maybe"}
-                    </button>
-                    <button className="btn-int" onClick={()=>onInterested()} style={{
-                      height:52,borderRadius:14,
-                      background:"linear-gradient(135deg,#f4dd85 0%,#e5c95b 46%,#d1a834 100%)",
-                      border:"1px solid rgba(255,236,169,0.55)",color:"#241805",
-                      fontFamily:"'Source Sans 3',sans-serif",fontSize:13,fontWeight:700,cursor:"pointer",
-                      boxShadow:"0 10px 24px rgba(180,130,25,0.24),inset 0 1px 0 rgba(255,255,255,0.45)"
-                    }}>
-                      ❤️ Interested
-                    </button>
-                  </>)}
-                </div>
-              </div>
+          {/* BUTTONS — flex-shrink:0, always at bottom */}
+          <div style={{flexShrink:0,padding:"7px 13px 7px",background:gradTo}}>
+            <div style={{display:"grid",gridTemplateColumns:"50px 1fr 1.2fr",gap:8}}>
+              {triageStatus==="interested" ? (
+                <button onClick={()=>onRemove()} style={{gridColumn:"1/-1",height:48,borderRadius:13,background:"linear-gradient(135deg,#f4dd85,#d1a834)",border:"none",color:"#241805",fontFamily:"'Source Sans 3',sans-serif",fontSize:12,fontWeight:700,cursor:"pointer"}}>
+                  ❤️ Interested · Remove
+                </button>
+              ) : (<>
+                <button className="btn-skip" onClick={()=>onSkip()} style={{
+                  height:48,borderRadius:13,
+                  background:triageStatus==="skipped"?"linear-gradient(180deg,rgba(100,26,32,0.86),rgba(58,14,20,0.96))":"linear-gradient(180deg,rgba(20,18,24,0.94),rgba(12,11,17,0.96))",
+                  border:"1px solid "+(triageStatus==="skipped"?"rgba(205,78,88,0.9)":"rgba(255,255,255,0.10)"),
+                  cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:1
+                }}>
+                  <span style={{fontSize:18,color:triageStatus==="skipped"?"#efb5b8":"rgba(255,220,220,0.62)",fontWeight:500,lineHeight:1}}>✕</span>
+                  <span style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:7,fontWeight:700,letterSpacing:"0.1em",color:triageStatus==="skipped"?"#efb5b8":"rgba(255,200,200,0.35)"}}>SKIP</span>
+                </button>
+                <button className="btn-maybe" onClick={()=>onMaybe()} style={{
+                  height:48,borderRadius:13,
+                  background:triageStatus==="maybe"?"linear-gradient(180deg,rgba(38,27,26,0.92),rgba(24,18,20,0.96))":"linear-gradient(180deg,rgba(20,18,24,0.94),rgba(12,11,17,0.96))",
+                  border:"1px solid "+(triageStatus==="maybe"?"rgba(233,196,88,0.78)":"rgba(255,255,255,0.10)"),
+                  color:triageStatus==="maybe"?"#e9c458":"rgba(235,230,236,0.88)",
+                  fontFamily:"'Source Sans 3',sans-serif",fontSize:12,fontWeight:700,cursor:"pointer"
+                }}>
+                  🤷 {triageStatus==="maybe"?"Maybe ✓":"Maybe"}
+                </button>
+                <button className="btn-int" onClick={()=>onInterested()} style={{
+                  height:48,borderRadius:13,
+                  background:"linear-gradient(135deg,#f4dd85 0%,#e5c95b 46%,#d1a834 100%)",
+                  border:"1px solid rgba(255,236,169,0.55)",color:"#241805",
+                  fontFamily:"'Source Sans 3',sans-serif",fontSize:12,fontWeight:700,cursor:"pointer",
+                  boxShadow:"0 6px 18px rgba(180,130,25,0.24)"
+                }}>
+                  ❤️ Interested
+                </button>
+              </>)}
             </div>
           </div>
         </div>
