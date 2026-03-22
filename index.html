@@ -827,41 +827,43 @@ function CollegeCard({ school, flipped, onFlip, triageStatus, onSkip, onMaybe, o
           overflow: "hidden",
           display: "flex",
           flexDirection: "column",
+          isolation: "isolate",
+          transform: "translateZ(0)",
         }}>
-          {/* Hero — fixed 220px, never shrinks */}
-          <div style={{flexShrink:0,height:220,position:"relative",overflow:"hidden"}}>
+          {/* Hero — strict 200px */}
+          <div style={{flexShrink:0,flexBasis:200,height:200,position:"relative",overflow:"hidden"}}>
             <div className={"scene-wrap"+(fading?" fading":"")} style={{width:"100%",height:"100%",transform:"scale(1.04)",transformOrigin:"center 20%"}}><Scene/></div>
-            <div style={{position:"absolute",top:12,left:12,background:"linear-gradient(180deg,#e4bd47,#cfa533)",color:"#2f230d",borderRadius:10,padding:"6px 11px 5px",lineHeight:1,boxShadow:"0 3px 10px rgba(0,0,0,0.28)",zIndex:3}}>
-              <div style={{fontFamily:"'Source Sans 3',sans-serif",fontWeight:800,fontSize:18,letterSpacing:"-0.01em"}}>{school.ranking}</div>
+            <div style={{position:"absolute",top:10,left:10,background:"linear-gradient(180deg,#e4bd47,#cfa533)",color:"#2f230d",borderRadius:9,padding:"5px 10px 4px",lineHeight:1,boxShadow:"0 3px 10px rgba(0,0,0,0.28)",zIndex:3}}>
+              <div style={{fontFamily:"'Source Sans 3',sans-serif",fontWeight:800,fontSize:16,letterSpacing:"-0.01em"}}>{school.ranking}</div>
               <div style={{fontFamily:"'Source Sans 3',sans-serif",fontWeight:700,fontSize:7,letterSpacing:"0.07em",textTransform:"uppercase",opacity:0.75,marginTop:2}}>{school.rankLabel}</div>
             </div>
-            <div style={{position:"absolute",top:16,right:12,display:"flex",gap:5,zIndex:3}}>
+            <div style={{position:"absolute",top:14,right:10,display:"flex",gap:5,zIndex:3}}>
               {school.scenes.map((_,i)=>(
-                <div key={i} onClick={e=>{e.stopPropagation();setPhotoIdx(i);}} style={{width:8,height:8,borderRadius:"50%",background:i===photoIdx?"#e2bb47":"rgba(255,255,255,0.3)",cursor:"pointer"}}/>
+                <div key={i} onClick={e=>{e.stopPropagation();setPhotoIdx(i);}} style={{width:7,height:7,borderRadius:"50%",background:i===photoIdx?"#e2bb47":"rgba(255,255,255,0.3)",cursor:"pointer"}}/>
               ))}
             </div>
-            <div style={{position:"absolute",bottom:0,left:0,right:0,height:"60%",pointerEvents:"none",background:
+            <div style={{position:"absolute",bottom:0,left:0,right:0,height:"55%",pointerEvents:"none",background:
               "linear-gradient(180deg,rgba(0,0,0,0) 0%,"+hexToRgba(primaryColor,0.6)+" 55%,"+gradTo+" 100%)"
             }}/>
           </div>
 
-          {/* Body — flex:1, click to flip, min-height 0 so it shrinks if needed */}
-          <div onClick={()=>onFlip(!flipped)} style={{flex:1,minHeight:0,cursor:"pointer",background:gradTo,padding:"8px 14px 0 14px",overflow:"hidden"}}>
-            <div style={{fontFamily:"'Playfair Display',Georgia,serif",fontWeight:700,fontSize:26,lineHeight:1.05,color:"#FFF7ED",letterSpacing:"-0.01em",textShadow:"0 2px 10px rgba(0,0,0,0.55)",marginBottom:3}}>{school.name}</div>
-            <div style={{fontFamily:"'Source Sans 3',sans-serif",fontWeight:600,fontSize:10,letterSpacing:"0.09em",textTransform:"uppercase",color:"#F3D06A",marginBottom:7,display:"flex",alignItems:"center",gap:5}}>
+          {/* Body — flex:1 with minHeight:0 so it never pushes buttons out */}
+          <div onClick={()=>onFlip(!flipped)} style={{flex:1,minHeight:0,cursor:"pointer",background:gradTo,padding:"7px 13px 0",overflow:"hidden"}}>
+            <div style={{fontFamily:"'Playfair Display',Georgia,serif",fontWeight:700,fontSize:22,lineHeight:1.05,color:"#FFF7ED",letterSpacing:"-0.01em",marginBottom:2}}>{school.name}</div>
+            <div style={{fontFamily:"'Source Sans 3',sans-serif",fontWeight:600,fontSize:10,letterSpacing:"0.09em",textTransform:"uppercase",color:"#F3D06A",marginBottom:6,display:"flex",alignItems:"center",gap:5}}>
               <span>{school.mascot}</span>{school.subtitle}
             </div>
-            <div style={{fontFamily:"'Source Sans 3',sans-serif",fontWeight:700,fontSize:8,letterSpacing:"0.18em",textTransform:"uppercase",color:"#F1CF62",marginBottom:2}}>Claim to Fame</div>
-            <div style={{fontFamily:"'Playfair Display',Georgia,serif",fontWeight:600,fontSize:13,lineHeight:1.2,color:"#FFF4E8",marginBottom:7}}>{school.claim}</div>
-            <div style={{display:"grid",gap:5}}>
+            <div style={{fontFamily:"'Source Sans 3',sans-serif",fontWeight:700,fontSize:8,letterSpacing:"0.16em",textTransform:"uppercase",color:"#F1CF62",marginBottom:2}}>Claim to Fame</div>
+            <div style={{fontFamily:"'Playfair Display',Georgia,serif",fontWeight:600,fontSize:12,lineHeight:1.2,color:"#FFF4E8",marginBottom:6}}>{school.claim}</div>
+            <div style={{display:"grid",gap:4}}>
               {school.vibes.map(v=>(
                 <div key={v.label} style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
                   <div style={{fontFamily:"'Source Sans 3',sans-serif",fontWeight:600,fontSize:11,color:"rgba(255,243,230,0.92)",display:"flex",alignItems:"center",gap:5}}>
                     <span style={{width:14,textAlign:"center",fontSize:11}}>{v.icon}</span>{v.label}
                   </div>
-                  <div style={{display:"flex",gap:4,flexShrink:0}}>
+                  <div style={{display:"flex",gap:3,flexShrink:0}}>
                     {[1,2,3,4,5].map(i=>(
-                      <div key={i} style={{width:25,height:9,borderRadius:999,background:i<=v.value?"linear-gradient(180deg,#f8e38f,#cc9828)":"rgba(255,255,255,0.16)"}}/>
+                      <div key={i} style={{width:24,height:8,borderRadius:999,background:i<=v.value?"linear-gradient(180deg,#f8e38f,#cc9828)":"rgba(255,255,255,0.16)"}}/>
                     ))}
                   </div>
                 </div>
@@ -869,25 +871,25 @@ function CollegeCard({ school, flipped, onFlip, triageStatus, onSkip, onMaybe, o
             </div>
           </div>
 
-          {/* Buttons — always visible at bottom, fixed height */}
-          <div style={{flexShrink:0,padding:"8px 14px 12px",background:gradTo}}>
-            <div style={{display:"grid",gridTemplateColumns:"50px 1fr 1.15fr",gap:8}}>
+          {/* Buttons — flexShrink:0, always at bottom */}
+          <div style={{flexShrink:0,padding:"6px 13px 11px",background:gradTo}}>
+            <div style={{display:"grid",gridTemplateColumns:"48px 1fr 1.15fr",gap:7}}>
               {triageStatus==="interested" ? (
-                <button onClick={()=>onRemove()} style={{gridColumn:"1/-1",height:48,borderRadius:14,background:"linear-gradient(135deg,#f4dd85,#d1a834)",border:"none",color:"#241805",fontFamily:"'Source Sans 3',sans-serif",fontSize:13,fontWeight:700,cursor:"pointer"}}>
+                <button onClick={()=>onRemove()} style={{gridColumn:"1/-1",height:46,borderRadius:13,background:"linear-gradient(135deg,#f4dd85,#d1a834)",border:"none",color:"#241805",fontFamily:"'Source Sans 3',sans-serif",fontSize:12,fontWeight:700,cursor:"pointer"}}>
                   ❤️ Interested · Remove
                 </button>
               ) : (<>
                 <button className="btn-skip" onClick={()=>onSkip()} style={{
-                  height:48,borderRadius:14,
+                  height:46,borderRadius:13,
                   background:triageStatus==="skipped"?"rgba(180,30,30,0.35)":"rgba(18,15,22,0.92)",
                   border:"1px solid "+(triageStatus==="skipped"?"rgba(255,80,80,0.7)":"rgba(255,255,255,0.10)"),
                   cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:1
                 }}>
-                  <span style={{fontSize:16,color:triageStatus==="skipped"?"#ff6666":"rgba(255,200,200,0.55)",fontWeight:500,lineHeight:1}}>✕</span>
-                  <span style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:8,fontWeight:700,letterSpacing:"0.1em",color:triageStatus==="skipped"?"#ff8888":"rgba(255,200,200,0.4)"}}>SKIP</span>
+                  <span style={{fontSize:15,color:triageStatus==="skipped"?"#ff6666":"rgba(255,200,200,0.55)",fontWeight:500,lineHeight:1}}>✕</span>
+                  <span style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:7,fontWeight:700,letterSpacing:"0.1em",color:triageStatus==="skipped"?"#ff8888":"rgba(255,200,200,0.4)"}}>SKIP</span>
                 </button>
                 <button className="btn-maybe" onClick={()=>onMaybe()} style={{
-                  height:48,borderRadius:14,
+                  height:46,borderRadius:13,
                   background:triageStatus==="maybe"?"rgba(38,27,26,0.95)":"rgba(18,15,22,0.92)",
                   border:"1px solid "+(triageStatus==="maybe"?"rgba(233,196,88,0.75)":"rgba(255,255,255,0.10)"),
                   color:triageStatus==="maybe"?"#e9c458":"rgba(235,230,236,0.88)",
@@ -896,11 +898,11 @@ function CollegeCard({ school, flipped, onFlip, triageStatus, onSkip, onMaybe, o
                   🤷 {triageStatus==="maybe"?"Maybe ✓":"Maybe"}
                 </button>
                 <button className="btn-int" onClick={()=>onInterested()} style={{
-                  height:48,borderRadius:14,
+                  height:46,borderRadius:13,
                   background:"linear-gradient(135deg,#f4dd85 0%,#e5c95b 46%,#d1a834 100%)",
                   border:"1px solid rgba(255,236,169,0.55)",color:"#241805",
                   fontFamily:"'Source Sans 3',sans-serif",fontSize:12,fontWeight:700,cursor:"pointer",
-                  boxShadow:"0 6px 18px rgba(180,130,25,0.28)"
+                  boxShadow:"0 5px 16px rgba(180,130,25,0.28)"
                 }}>
                   ❤️ Interested
                 </button>
