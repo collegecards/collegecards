@@ -825,96 +825,79 @@ function CollegeCard({ school, flipped, onFlip, triageStatus, onSkip, onMaybe, o
           border: "2px solid " + borderColor,
           boxShadow: "0 22px 70px rgba(0,0,0,0.62)",
           overflow: "hidden",
+          display: "flex",
+          flexDirection: "column",
         }}>
-          {/* Hero */}
-          <div style={{position:"absolute",top:0,left:0,right:0,height:"58%",overflow:"hidden"}}>
+          {/* Hero photo — top 56% via a fixed-height div */}
+          <div style={{flexShrink:0,height:"56%",position:"relative",overflow:"hidden"}}>
             <div className={"scene-wrap"+(fading?" fading":"")} style={{width:"100%",height:"100%",transform:"scale(1.04)",transformOrigin:"center 20%"}}><Scene/></div>
+            {/* Rank badge */}
+            <div style={{position:"absolute",top:12,left:12,background:"linear-gradient(180deg,#e4bd47,#cfa533)",color:"#2f230d",borderRadius:10,padding:"6px 11px 5px",lineHeight:1,boxShadow:"0 3px 10px rgba(0,0,0,0.28)",zIndex:3}}>
+              <div style={{fontFamily:"'Source Sans 3',sans-serif",fontWeight:800,fontSize:18,letterSpacing:"-0.01em"}}>{school.ranking}</div>
+              <div style={{fontFamily:"'Source Sans 3',sans-serif",fontWeight:700,fontSize:7,letterSpacing:"0.07em",textTransform:"uppercase",opacity:0.75,marginTop:2}}>{school.rankLabel}</div>
+            </div>
+            {/* Dots */}
+            <div style={{position:"absolute",top:16,right:12,display:"flex",gap:5,zIndex:3}}>
+              {school.scenes.map((_,i)=>(
+                <div key={i} onClick={e=>{e.stopPropagation();setPhotoIdx(i);}} style={{width:8,height:8,borderRadius:"50%",background:i===photoIdx?"#e2bb47":"rgba(255,255,255,0.3)",cursor:"pointer"}}/>
+              ))}
+            </div>
+            {/* Fade-out at bottom of hero into card body */}
+            <div style={{position:"absolute",bottom:0,left:0,right:0,height:"55%",pointerEvents:"none",background:
+              "linear-gradient(180deg,rgba(0,0,0,0) 0%,"+
+              hexToRgba(primaryColor,0.6)+" 55%,"+
+              gradTo+" 100%)"
+            }}/>
           </div>
 
-          {/* Gradient */}
-          <div style={{position:"absolute",inset:0,pointerEvents:"none",background:
-            "linear-gradient(180deg," +
-            "rgba(0,0,0,0) 0%,rgba(0,0,0,0.02) 28%," +
-            hexToRgba(primaryColor,0.35)+" 44%," +
-            hexToRgba(primaryColor,0.75)+" 54%," +
-            hexToRgba(primaryColor,0.95)+" 62%," +
-            gradTo+" 72%)"
-          }}/>
-
-          {/* FLIP ZONE — covers everything except the buttons at bottom */}
-          <div onClick={()=>onFlip(!flipped)} style={{
-            position:"absolute",top:0,left:0,right:0,
-            bottom:76,
-            zIndex:2,cursor:"pointer"
-          }}/>
-
-          {/* Info overlay — pointer-events none so clicks fall through to flip zone */}
-          <div style={{position:"absolute",inset:0,zIndex:3,display:"flex",flexDirection:"column",padding:"12px 14px 0 14px",pointerEvents:"none"}}>
-            {/* Top row — re-enable pointer events for dots */}
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexShrink:0,pointerEvents:"auto"}}>
-              <div style={{background:"linear-gradient(180deg,#e4bd47,#cfa533)",color:"#2f230d",borderRadius:10,padding:"6px 11px 5px",lineHeight:1,boxShadow:"0 3px 10px rgba(0,0,0,0.28)"}}>
-                <div style={{fontFamily:"'Source Sans 3',sans-serif",fontWeight:800,fontSize:18,letterSpacing:"-0.01em"}}>{school.ranking}</div>
-                <div style={{fontFamily:"'Source Sans 3',sans-serif",fontWeight:700,fontSize:7,letterSpacing:"0.07em",textTransform:"uppercase",opacity:0.75,marginTop:2}}>{school.rankLabel}</div>
-              </div>
-              <div style={{display:"flex",gap:5,paddingTop:7}}>
-                {school.scenes.map((_,i)=>(
-                  <div key={i} onClick={e=>{e.stopPropagation();setPhotoIdx(i);}} style={{width:8,height:8,borderRadius:"50%",background:i===photoIdx?"#e2bb47":"rgba(255,255,255,0.3)",cursor:"pointer",pointerEvents:"auto"}}/>
-                ))}
-              </div>
+          {/* Body — flex grows to fill, click here flips */}
+          <div onClick={()=>onFlip(!flipped)} style={{flex:1,cursor:"pointer",background:gradTo,padding:"8px 14px 0 14px",display:"flex",flexDirection:"column",justifyContent:"flex-end"}}>
+            {/* Name */}
+            <div style={{fontFamily:"'Playfair Display',Georgia,serif",fontWeight:700,fontSize:30,lineHeight:1.0,color:"#FFF7ED",letterSpacing:"-0.01em",textShadow:"0 2px 10px rgba(0,0,0,0.55)",marginBottom:4}}>{school.name}</div>
+            <div style={{fontFamily:"'Source Sans 3',sans-serif",fontWeight:600,fontSize:11,letterSpacing:"0.09em",textTransform:"uppercase",color:"#F3D06A",marginBottom:8,display:"flex",alignItems:"center",gap:6}}>
+              <span>{school.mascot}</span>{school.subtitle}
             </div>
-
-            <div style={{flex:1}}/>
-
-            {/* Title */}
-            <div style={{flexShrink:0,marginBottom:10}}>
-              <div style={{fontFamily:"'Playfair Display',Georgia,serif",fontWeight:700,fontSize:32,lineHeight:1.0,color:"#FFF7ED",letterSpacing:"-0.01em",textShadow:"0 2px 10px rgba(0,0,0,0.55)"}}>{school.name}</div>
-              <div style={{fontFamily:"'Source Sans 3',sans-serif",fontWeight:600,fontSize:11,letterSpacing:"0.09em",textTransform:"uppercase",color:"#F3D06A",marginTop:5,display:"flex",alignItems:"center",gap:6}}>
-                <span>{school.mascot}</span>{school.subtitle}
-              </div>
-            </div>
-
-            {/* Claim + vibes */}
-            <div style={{flexShrink:0}}>
-              <div style={{fontFamily:"'Source Sans 3',sans-serif",fontWeight:700,fontSize:9,letterSpacing:"0.18em",textTransform:"uppercase",color:"#F1CF62",marginBottom:4}}>Claim to Fame</div>
-              <div style={{fontFamily:"'Playfair Display',Georgia,serif",fontWeight:600,fontSize:15,lineHeight:1.2,color:"#FFF4E8",marginBottom:10}}>{school.claim}</div>
-              <div style={{display:"grid",gap:7,marginBottom:14}}>
-                {school.vibes.map(v=>(
-                  <div key={v.label} style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-                    <div style={{fontFamily:"'Source Sans 3',sans-serif",fontWeight:600,fontSize:12,color:"rgba(255,243,230,0.92)",display:"flex",alignItems:"center",gap:6}}>
-                      <span style={{width:16,textAlign:"center",fontSize:12}}>{v.icon}</span>{v.label}
-                    </div>
-                    <div style={{display:"flex",gap:4}}>
-                      {[1,2,3,4,5].map(i=>(
-                        <div key={i} style={{width:28,height:10,borderRadius:999,
-                          background:i<=v.value?"linear-gradient(180deg,#f8e38f,#cc9828)":"rgba(255,255,255,0.16)"
-                        }}/>
-                      ))}
-                    </div>
+            {/* Claim */}
+            <div style={{fontFamily:"'Source Sans 3',sans-serif",fontWeight:700,fontSize:9,letterSpacing:"0.18em",textTransform:"uppercase",color:"#F1CF62",marginBottom:3}}>Claim to Fame</div>
+            <div style={{fontFamily:"'Playfair Display',Georgia,serif",fontWeight:600,fontSize:14,lineHeight:1.2,color:"#FFF4E8",marginBottom:8}}>{school.claim}</div>
+            {/* Vibes */}
+            <div style={{display:"grid",gap:6,marginBottom:10}}>
+              {school.vibes.map(v=>(
+                <div key={v.label} style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+                  <div style={{fontFamily:"'Source Sans 3',sans-serif",fontWeight:600,fontSize:11,color:"rgba(255,243,230,0.92)",display:"flex",alignItems:"center",gap:6}}>
+                    <span style={{width:15,textAlign:"center",fontSize:11}}>{v.icon}</span>{v.label}
                   </div>
-                ))}
-              </div>
+                  <div style={{display:"flex",gap:4}}>
+                    {[1,2,3,4,5].map(i=>(
+                      <div key={i} style={{width:26,height:9,borderRadius:999,
+                        background:i<=v.value?"linear-gradient(180deg,#f8e38f,#cc9828)":"rgba(255,255,255,0.16)"
+                      }}/>
+                    ))}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
 
-          {/* BUTTONS — fixed at bottom, full pointer events, above flip zone */}
-          <div style={{position:"absolute",bottom:0,left:0,right:0,padding:"0 14px 14px",zIndex:10,pointerEvents:"auto"}}>
+          {/* Buttons — flex-shrink 0, never overlaps content */}
+          <div style={{flexShrink:0,padding:"0 14px 14px",background:gradTo}}>
             <div style={{display:"grid",gridTemplateColumns:"52px 1fr 1.15fr",gap:9}}>
               {triageStatus==="interested" ? (
-                <button onClick={()=>onRemove()} style={{gridColumn:"1/-1",height:52,borderRadius:14,background:"linear-gradient(135deg,#f4dd85,#d1a834)",border:"none",color:"#241805",fontFamily:"'Source Sans 3',sans-serif",fontSize:13,fontWeight:700,cursor:"pointer"}}>
+                <button onClick={()=>onRemove()} style={{gridColumn:"1/-1",height:50,borderRadius:14,background:"linear-gradient(135deg,#f4dd85,#d1a834)",border:"none",color:"#241805",fontFamily:"'Source Sans 3',sans-serif",fontSize:13,fontWeight:700,cursor:"pointer"}}>
                   ❤️ Interested · Remove
                 </button>
               ) : (<>
                 <button className="btn-skip" onClick={()=>onSkip()} style={{
-                  height:52,borderRadius:14,
+                  height:50,borderRadius:14,
                   background:triageStatus==="skipped"?"rgba(180,30,30,0.35)":"rgba(18,15,22,0.92)",
                   border:"1px solid "+(triageStatus==="skipped"?"rgba(255,80,80,0.7)":"rgba(255,255,255,0.10)"),
                   cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:2
                 }}>
-                  <span style={{fontSize:18,color:triageStatus==="skipped"?"#ff6666":"rgba(255,200,200,0.55)",fontWeight:500,lineHeight:1}}>✕</span>
+                  <span style={{fontSize:17,color:triageStatus==="skipped"?"#ff6666":"rgba(255,200,200,0.55)",fontWeight:500,lineHeight:1}}>✕</span>
                   <span style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:8,fontWeight:700,letterSpacing:"0.1em",color:triageStatus==="skipped"?"#ff8888":"rgba(255,200,200,0.4)"}}>SKIP</span>
                 </button>
                 <button className="btn-maybe" onClick={()=>onMaybe()} style={{
-                  height:52,borderRadius:14,
+                  height:50,borderRadius:14,
                   background:triageStatus==="maybe"?"rgba(38,27,26,0.95)":"rgba(18,15,22,0.92)",
                   border:"1px solid "+(triageStatus==="maybe"?"rgba(233,196,88,0.75)":"rgba(255,255,255,0.10)"),
                   color:triageStatus==="maybe"?"#e9c458":"rgba(235,230,236,0.88)",
@@ -923,7 +906,7 @@ function CollegeCard({ school, flipped, onFlip, triageStatus, onSkip, onMaybe, o
                   🤷 {triageStatus==="maybe"?"Maybe ✓":"Maybe"}
                 </button>
                 <button className="btn-int" onClick={()=>onInterested()} style={{
-                  height:52,borderRadius:14,
+                  height:50,borderRadius:14,
                   background:"linear-gradient(135deg,#f4dd85 0%,#e5c95b 46%,#d1a834 100%)",
                   border:"1px solid rgba(255,236,169,0.55)",color:"#241805",
                   fontFamily:"'Source Sans 3',sans-serif",fontSize:13,fontWeight:700,cursor:"pointer",
