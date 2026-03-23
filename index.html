@@ -1604,20 +1604,20 @@ function CollegeCards() {
   const [seqIdx, setSeqIdx] = useState(0);
   const [cardFlipped, setCardFlipped] = useState(false);
 
-  // Responsive card — scales to fill mobile viewport
+  // Responsive card — fills mobile viewport, desktop stays at 1x
   const [cardScale, setCardScale] = useState(1);
   useEffect(() => {
     const update = () => {
-      const avH = window.innerHeight - 65 - 55 - 20; // minus nav, dots, padding
-      const avW = Math.min(window.innerWidth, 430) - 20; // respect maxWidth:430 container
-      const s = Math.min(avH / 530, avW / 340); // fit both dimensions
-      setCardScale(Math.min(1.3, Math.max(0.7, s))); // 0.7–1.3 range
+      if(window.innerWidth > 500) { setCardScale(1); return; }
+      const avH = window.innerHeight - 65 - 55 - 20;
+      const avW = window.innerWidth - 16;
+      const s = Math.min(1.25, avH / 530, avW / 340);
+      setCardScale(Math.max(0.7, s));
     };
     update();
     window.addEventListener('resize', update);
     return () => window.removeEventListener('resize', update);
   }, []);
-
   // localStorage-backed state — auto-saves on every change, restores on load
   const load = (key, fallback) => { try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch(e) { return fallback; } };
   const save = (key, val) => { try { localStorage.setItem(key, JSON.stringify(val)); } catch(e) {} };
@@ -1907,9 +1907,21 @@ function CollegeCards() {
           {/* Card with overlaid arrows */}
           <div style={{position:"relative",width:340}}>
             <button onClick={prev} style={{position:"absolute",left:-14,top:240,zIndex:10,background:"rgba(0,0,0,0.6)",border:"1px solid rgba(255,255,255,0.18)",borderRadius:"50%",width:30,height:30,cursor:"pointer",color:"#fff",fontSize:18,display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
-            {cur?.t==="welcome" && <WelcomeCard onDismiss={next}/>}
-            {cur?.t==="search"  && <SearchCard onResult={id=>{jumpTo(id);}} onSurprise={()=>{surpriseMe();next();}}/>}
-            {cur?.t==="ad"      && <AdCard ad={cur.ad}/>}
+            {cur?.t==="welcome" && (
+              <div style={{transform:`scale(${cardScale})`,transformOrigin:"top center",width:340,height:530,marginBottom:`${530*(cardScale-1)}px`}}>
+                <WelcomeCard onDismiss={next}/>
+              </div>
+            )}
+            {cur?.t==="search"  && (
+              <div style={{transform:`scale(${cardScale})`,transformOrigin:"top center",width:340,height:530,marginBottom:`${530*(cardScale-1)}px`}}>
+                <SearchCard onResult={id=>{jumpTo(id);}} onSurprise={()=>{surpriseMe();next();}}/>
+              </div>
+            )}
+            {cur?.t==="ad"      && (
+              <div style={{transform:`scale(${cardScale})`,transformOrigin:"top center",width:340,height:530,marginBottom:`${530*(cardScale-1)}px`}}>
+                <AdCard ad={cur.ad}/>
+              </div>
+            )}
             {cur?.t==="school"  && (
               <div style={{transform:`scale(${cardScale})`,transformOrigin:"top center",width:340,height:530,marginBottom:`${530*(cardScale-1)}px`}}>
                 <CollegeCard key={school.id} school={school} flipped={cardFlipped} onFlip={setCardFlipped}
