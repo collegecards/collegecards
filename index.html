@@ -1026,7 +1026,7 @@ function SearchCard({ onResult, onSurprise, onJumpIn }) {
     const to  = s.stats.find(x=>x.label==="Test Optional?")?.value||"";
     const acc = parseInt((s.stats.find(x=>x.label==="Acceptance Rate")?.value||"100").replace(/[^0-9]/g,""));
     if(f.region && getRegion(loc)!==f.region) return false;
-    if(f.state && !loc.includes(f.state)) return false;
+    if(f.state && !loc.toUpperCase().includes(","+f.state) && !loc.toUpperCase().includes(", "+f.state)) return false;
     if(f.setting && !set.toLowerCase().includes(f.setting.toLowerCase())) return false;
     if(f.size && !sizeOk(f.size,enr)) return false;
     if(f.testOpt && !to.includes(Yes)) return false;
@@ -1089,14 +1089,16 @@ function SearchCard({ onResult, onSurprise, onJumpIn }) {
               </button>
             </div>
           </div>
-          <div style={{flex:1,position:"relative",overflow:"hidden"}}><div className="search-scroll" style={{height:"100%",overflowY:"scroll",overflowX:"hidden",padding:"8px 14px",display:"flex",flexDirection:"column",gap:10,scrollbarWidth:"thin",scrollbarColor:"rgba(212,175,55,0.5) rgba(255,255,255,0.05)"}}>
+          <div style={{flex:1,overflow:"hidden"}}><div className="search-scroll" style={{height:"100%",overflowY:"scroll",overflowX:"hidden",padding:"8px 14px 8px 14px",display:"flex",flexDirection:"column",gap:10,scrollbarWidth:"thin",scrollbarColor:"rgba(212,175,55,0.6) rgba(255,255,255,0.06)"}}>
             <div>
               <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:11,color:"rgba(255,255,255,0.65)",fontWeight:600,marginBottom:6}}>State</div>
-              <div style={{display:"flex",flexWrap:"wrap",gap:3}}>
-                {["MA","NY","NJ","PA","CT","NH","VT","RI","ME","TN","NC","VA","GA","FL","OH","IN","IL","MI","WI","CA","CO","WA","OR"].map(o=>(
-                  <Chip key={o} label={o} active={f.state===o} onClick={()=>setF(x=>({...x,state:x.state===o?"":o,region:""}))}/>
+              <select value={f.state} onChange={e=>setF(x=>({...x,state:e.target.value,region:""}))}
+                style={{width:"100%",background:"#0e0e1a",border:"1px solid "+(f.state?"rgba(212,175,55,0.6)":"rgba(255,255,255,0.15)"),borderRadius:8,padding:"7px 10px",color:f.state?"#D4AF37":"rgba(255,255,255,0.5)",fontFamily:"'Source Sans 3',sans-serif",fontSize:11,cursor:"pointer",outline:"none"}}>
+                <option value="">All States</option>
+                {["Alabama","Alaska","Arizona","Arkansas","California","Colorado","Connecticut","Delaware","Florida","Georgia","Hawaii","Idaho","Illinois","Indiana","Iowa","Kansas","Kentucky","Louisiana","Maine","Maryland","Massachusetts","Michigan","Minnesota","Mississippi","Missouri","Montana","Nebraska","Nevada","New Hampshire","New Jersey","New Mexico","New York","North Carolina","North Dakota","Ohio","Oklahoma","Oregon","Pennsylvania","Rhode Island","South Carolina","South Dakota","Tennessee","Texas","Utah","Vermont","Virginia","Washington","West Virginia","Wisconsin","Wyoming"].map(s=>(
+                  <option key={s} value={s.slice(0,2).toUpperCase()}>{s}</option>
                 ))}
-              </div>
+              </select>
             </div>
             {[{label:"Region",key:"region",opts:["Northeast","South","Midwest","West"]},{label:"Setting",key:"setting",opts:["Urban","Suburban","Rural","Small Town"]},{label:"Size",key:"size",opts:["Small","Medium","Large"]}].map(({label,key,opts}) => (
               <div key={key}>
@@ -1132,7 +1134,7 @@ function SearchCard({ onResult, onSurprise, onJumpIn }) {
               <Dots k="social" label="🎉 Social Scene"/>
               <Dots k="beauty" label="🏛️ Campus Beauty"/>
             </div>
-          </div><div style={{position:"absolute",bottom:0,left:0,right:0,height:24,background:"linear-gradient(transparent,rgba(10,13,20,0.9))",pointerEvents:"none",display:"flex",alignItems:"flex-end",justifyContent:"center",paddingBottom:3}}><span style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:8,color:"rgba(212,175,55,0.45)"}}>▼ more filters below</span></div></div>
+          </div></div>
           <div style={{flexShrink:0,padding:"6px 14px 14px"}}>
             {matches.length>0 ? (
               <button onClick={()=>{
@@ -1493,7 +1495,7 @@ function BoardView({ board, onRemove, onMoveLane, onReorder, onRankReorder, onRa
   );
 }
 // ─── MY COLLEGES VIEW ──────────────────────────────────────────────────────
-function MyCollegesView({ boardIds, board, myStatus, onMoveStatus, onRemoveFromBoard, onExpand, skipped, onUnskip, onUnskipAll }) {
+function MyCollegesView({ boardIds, board, myStatus, onMoveStatus, onRemoveFromBoard, onExpand, skipped, onUnskip, onUnskipAll, darkMode }) {
   const getStatus = id => {
     if(myStatus.applied.includes(id)) return "applied";
     if(myStatus.applying.includes(id)) return "applying";
@@ -1506,34 +1508,31 @@ function MyCollegesView({ boardIds, board, myStatus, onMoveStatus, onRemoveFromB
     return {label:"TBD",color:"#8888aa"};
   };
   const buckets = [
-    {key:"interested", label:"❤️ Interested",  color:"#50c878",  bg:"rgba(50,200,100,0.06)",  border:"rgba(50,200,100,0.2)"},
-    {key:"applying",   label:"📝 Applying",    color:"#f09050",  bg:"rgba(240,144,80,0.06)",  border:"rgba(240,144,80,0.2)"},
-    {key:"applied",    label:"✅ Applied",     color:"#7BE5A1",  bg:"rgba(123,229,161,0.06)", border:"rgba(123,229,161,0.2)"},
+    {key:"interested", label:"❤️ Interested",  color:"#50c878",  bg:"rgba(50,200,100,0.08)",  border:"rgba(50,200,100,0.25)"},
+    {key:"applying",   label:"📝 Applying",    color:"#f09050",  bg:"rgba(240,144,80,0.08)",  border:"rgba(240,144,80,0.25)"},
+    {key:"applied",    label:"✅ Applied",     color:"#7BE5A1",  bg:"rgba(123,229,161,0.08)", border:"rgba(123,229,161,0.25)"},
   ];
-  const comingSoon = [
-    {label:"🎓 Counselor",desc:"Invite your counselor to suggest schools"},
-    {label:"👨‍👩‍👧 Family",   desc:"Invite parents to collaborate on your list"},
-    {label:"👥 Friends",  desc:"See where your friends are applying"},
-  ];
+  if(boardIds.length===0) return (
+    <div style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:14,padding:40}}>
+      <div style={{fontSize:44}}>🎓</div>
+      <div style={{fontFamily:"'Playfair Display',serif",fontSize:20,color:darkMode?"rgba(255,255,255,0.45)":"rgba(0,0,0,0.4)",textAlign:"center"}}>No schools yet</div>
+      <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:12,color:darkMode?"rgba(255,255,255,0.28)":"rgba(0,0,0,0.35)",textAlign:"center",maxWidth:280,lineHeight:1.6}}>
+        Tap <strong style={{color:"#50c878"}}>❤️ Interested</strong> on any card while browsing.
+      </div>
+    </div>
+  );
   return (
     <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden"}}>
       <div style={{flex:1,overflowY:"auto",padding:"10px 12px 28px"}}>
-        {boardIds.length===0 && (
-          <div style={{textAlign:"center",padding:"40px 20px",fontFamily:"'Source Sans 3',sans-serif",fontSize:12,color:"rgba(255,255,255,0.28)"}}>
-            Mark schools as Interested while browsing to build your list.
-          </div>
-        )}
         {buckets.map(bucket => {
           const ids = boardIds.filter(id => getStatus(id)===bucket.key);
           if(ids.length===0) return null;
           return (
-            <div key={bucket.key} style={{marginBottom:16}}>
-              {/* Bucket header */}
-              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 14px",background:bucket.bg,border:"2px solid "+(bucket.border),borderRadius:10,marginBottom:8}}>
-                <div style={{fontFamily:"'Source Sans 3',sans-serif",fontWeight:900,fontSize:17,color:bucket.color,letterSpacing:"0.06em",textTransform:"uppercase"}}>{bucket.label}</div>
+            <div key={bucket.key} style={{marginBottom:14}}>
+              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"9px 14px",background:bucket.bg,border:"2px solid "+bucket.border,borderRadius:10,marginBottom:8}}>
+                <div style={{fontFamily:"'Source Sans 3',sans-serif",fontWeight:900,fontSize:15,color:bucket.color,letterSpacing:"0.06em"}}>{bucket.label}</div>
                 <div style={{fontFamily:"'Playfair Display',serif",fontSize:20,color:bucket.color,fontWeight:900}}>{ids.length}</div>
               </div>
-              {/* Schools in bucket */}
               {ids.map(id => {
                 const school = SCHOOLS.find(s=>s.id===id);
                 if(!school) return null;
@@ -1541,25 +1540,38 @@ function MyCollegesView({ boardIds, board, myStatus, onMoveStatus, onRemoveFromB
                 const status = getStatus(id);
                 const statusColor = {interested:"#50c878",applying:"#f09050",applied:"#7BE5A1"}[status];
                 return (
-                  <div key={id} style={{display:"flex",alignItems:"center",gap:9,background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:10,padding:"9px 11px",marginBottom:6}}>
-                    <div style={{background:"linear-gradient(135deg,"+(school.gradFrom)+","+(school.primaryColor)+")",borderRadius:8,width:38,height:38,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0,cursor:"pointer"}} onClick={()=>onExpand(id)}>
-                      {school.mascot}
-                    </div>
-                    <div style={{flex:1,minWidth:0,cursor:"pointer"}} onClick={()=>onExpand(id)}>
-                      <div style={{fontFamily:"'Playfair Display',serif",fontWeight:900,fontSize:12,color:"#fff",lineHeight:1.1,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{school.name}</div>
-                      <div style={{display:"flex",gap:6,alignItems:"center",marginTop:2}}>
-                        <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:8,fontWeight:700,color:lane.color,letterSpacing:"0.08em"}}>{lane.label}</div>
-                        <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:7,color:"rgba(255,255,255,0.3)"}}>{school.stats.find(s=>s.label==="Acceptance Rate")?.value} · {school.ranking}</div>
+                  <div key={id} style={{
+                    background:"linear-gradient(135deg,"+school.gradFrom+","+school.primaryColor+")",
+                    border:"2px solid "+lane.color+"66",
+                    borderRadius:12,padding:"10px 12px",marginBottom:8,
+                    boxShadow:"0 4px 18px rgba(0,0,0,0.35)",cursor:"pointer",
+                  }} onClick={()=>onExpand(id)}>
+                    <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
+                      <div style={{background:school.accentColor+"25",border:"1.5px solid "+school.accentColor+"55",borderRadius:8,width:36,height:36,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0}}>
+                        {school.mascot}
                       </div>
+                      <div style={{flex:1,minWidth:0}}>
+                        <div style={{fontFamily:"'Playfair Display',serif",fontWeight:900,fontSize:14,color:"#fff",lineHeight:1.1,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{school.name}</div>
+                        <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:9,color:school.accentColor,marginTop:2,letterSpacing:"0.06em",textTransform:"uppercase"}}>{school.subtitle}</div>
+                      </div>
+                      <div style={{background:lane.color+"20",border:"1px solid "+lane.color+"55",borderRadius:5,padding:"2px 7px",fontSize:7,fontFamily:"'Source Sans 3',sans-serif",fontWeight:700,color:lane.color,letterSpacing:"0.08em",flexShrink:0}}>{lane.label}</div>
                     </div>
-                    <div style={{display:"flex",flexDirection:"column",gap:4,alignItems:"flex-end"}}>
-                      <select value={status} onChange={e=>onMoveStatus(id,e.target.value)} onClick={e=>e.stopPropagation()}
-                        style={{background:"#1a1408",border:"2px solid "+(statusColor)+"88",borderRadius:8,color:statusColor,fontFamily:"'Source Sans 3',sans-serif",fontSize:12,padding:"5px 8px",cursor:"pointer",outline:"none",fontWeight:700,minWidth:120}}>
+                    <div style={{display:"flex",gap:14,paddingTop:7,borderTop:"1px solid rgba(255,255,255,0.1)",marginBottom:8}}>
+                      {[{l:"Accept",v:school.stats.find(s=>s.label==="Acceptance Rate")?.value},{l:"Rank",v:school.ranking},{l:"Aid",v:school.stats.find(s=>s.label==="Avg Financial Aid")?.value}].map(item=>(
+                        <div key={item.l}>
+                          <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:7,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:"0.06em"}}>{item.l}</div>
+                          <div style={{fontFamily:"'Source Sans 3',sans-serif",fontWeight:600,fontSize:10,color:"#fff",marginTop:1}}>{item.v||"—"}</div>
+                        </div>
+                      ))}
+                    </div>
+                    <div style={{display:"flex",gap:6}} onClick={e=>e.stopPropagation()}>
+                      <select value={status} onChange={e=>onMoveStatus(id,e.target.value)}
+                        style={{flex:1,background:"rgba(0,0,0,0.3)",border:"1px solid "+statusColor+"55",borderRadius:8,color:statusColor,fontFamily:"'Source Sans 3',sans-serif",fontSize:11,padding:"5px 8px",cursor:"pointer",outline:"none",fontWeight:700}}>
                         <option value="interested">❤️ Interested</option>
                         <option value="applying">📝 Applying</option>
                         <option value="applied">✅ Applied</option>
                       </select>
-                      <button onClick={()=>onRemoveFromBoard(id)} style={{background:"rgba(255,40,40,0.07)",border:"1px solid rgba(255,60,60,0.15)",borderRadius:4,padding:"1px 6px",cursor:"pointer",fontFamily:"'Source Sans 3',sans-serif",fontSize:7,color:"rgba(255,100,100,0.6)"}}>remove</button>
+                      <button onClick={()=>onRemoveFromBoard(id)} style={{background:"rgba(255,40,40,0.1)",border:"1px solid rgba(255,60,60,0.2)",borderRadius:8,padding:"5px 10px",cursor:"pointer",fontFamily:"'Source Sans 3',sans-serif",fontSize:10,color:"rgba(255,100,100,0.7)"}}>✕</button>
                     </div>
                   </div>
                 );
@@ -1567,39 +1579,26 @@ function MyCollegesView({ boardIds, board, myStatus, onMoveStatus, onRemoveFromB
             </div>
           );
         })}
-        {/* Skipped schools */}
         {skipped && skipped.length>0 && (
-          <div style={{marginTop:12,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:10,padding:"10px 12px"}}>
+          <div style={{marginTop:8,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:10,padding:"10px 12px"}}>
             <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
               <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:9,letterSpacing:"0.12em",color:"rgba(255,255,255,0.3)",textTransform:"uppercase"}}>Skipped ({skipped.length})</div>
-              <button onClick={onUnskipAll} style={{background:"transparent",border:"none",cursor:"pointer",fontFamily:"'Source Sans 3',sans-serif",fontSize:9,color:"rgba(212,175,55,0.5)",letterSpacing:"0.06em"}}>Restore all</button>
+              <button onClick={onUnskipAll} style={{background:"transparent",border:"none",cursor:"pointer",fontFamily:"'Source Sans 3',sans-serif",fontSize:9,color:"rgba(212,175,55,0.5)"}}>Restore all</button>
             </div>
-            {skipped.map(id=>{
-              const s=SCHOOLS.find(x=>x.id===id);
-              if(!s) return null;
-              return (
-                <div key={id} style={{display:"flex",alignItems:"center",gap:8,padding:"6px 0",borderBottom:"1px solid rgba(255,255,255,0.04)"}}>
-                  <span style={{fontSize:16,opacity:0.5}}>{s.mascot}</span>
-                  <div style={{flex:1,fontFamily:"'Playfair Display',serif",fontSize:11,color:"rgba(255,255,255,0.3)"}}>{s.name}</div>
-                  <button onClick={()=>onUnskip(id)} style={{background:"rgba(80,200,120,0.08)",border:"1px solid rgba(80,200,120,0.2)",borderRadius:5,padding:"2px 8px",cursor:"pointer",fontFamily:"'Source Sans 3',sans-serif",fontSize:8,color:"#50c878",fontWeight:600}}>+ Restore</button>
-                </div>
-              );
-            })}
+            {skipped.map(id=>{const s=SCHOOLS.find(x=>x.id===id);if(!s)return null;return(
+              <div key={id} style={{display:"flex",alignItems:"center",gap:8,padding:"6px 0",borderBottom:"1px solid rgba(255,255,255,0.04)"}}>
+                <span style={{fontSize:16,opacity:0.5}}>{s.mascot}</span>
+                <div style={{flex:1,fontFamily:"'Playfair Display',serif",fontSize:11,color:"rgba(255,255,255,0.3)"}}>{s.name}</div>
+                <button onClick={()=>onUnskip(id)} style={{background:"rgba(80,200,120,0.08)",border:"1px solid rgba(80,200,120,0.2)",borderRadius:5,padding:"2px 8px",cursor:"pointer",fontFamily:"'Source Sans 3',sans-serif",fontSize:8,color:"#50c878",fontWeight:600}}>+ Restore</button>
+              </div>
+            );})}
           </div>
         )}
-        <div style={{marginTop:16,padding:"12px",background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:10}}>
-          <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:8,letterSpacing:"0.15em",color:"rgba(255,255,255,0.25)",textTransform:"uppercase",marginBottom:10}}>Coming Soon — Collaborative Lists</div>
-          {comingSoon.map(({label,desc}) => (
-            <div key={label} style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
-              <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:10,color:"rgba(255,255,255,0.35)",fontWeight:600,minWidth:90}}>{label}</div>
-              <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:9,color:"rgba(255,255,255,0.22)"}}>{desc}</div>
-            </div>
-          ))}
-        </div>
       </div>
     </div>
   );
 }
+
 // ─── MAIN APP ──────────────────────────────────────────────────────────────
 // ─── ANALYTICS ────────────────────────────────────────────────────────────
 // Analytics — PostHog loaded via <head> snippet
@@ -1886,8 +1885,8 @@ function CollegeCards() {
       )}
 
       {/* SLIM TOP BAR */}
-      <div style={{flexShrink:0,display:"flex",alignItems:"center",justifyContent:"space-between",padding:"7px 10px",borderBottom:"1px solid rgba(255,255,255,0.07)"}}>
-        <div style={{fontFamily:"'Playfair Display',serif",fontWeight:900,fontSize:20,color:"#fff",letterSpacing:"0.04em",cursor:"pointer",flexShrink:0}} onClick={()=>{setSeqIdx(0);setView("browse");}}>
+      <div style={{flexShrink:0,display:"flex",alignItems:"center",justifyContent:"space-between",padding:"7px 10px",borderBottom:"1px solid "+(darkMode?"rgba(255,255,255,0.07)":"rgba(0,0,0,0.1)")}}>
+        <div style={{fontFamily:"'Playfair Display',serif",fontWeight:900,fontSize:20,color:darkMode?"#fff":"#1a1a1a",letterSpacing:"0.04em",cursor:"pointer",flexShrink:0}} onClick={()=>{setSeqIdx(0);setView("browse");}}>
           College<span style={{color:"#D4AF37"}}>Cards</span>
         </div>
         <div style={{display:"flex",alignItems:"center",gap:8,flexShrink:0}}>
@@ -1897,17 +1896,17 @@ function CollegeCards() {
           </button>
           <div style={{display:"flex",gap:8,alignItems:"flex-start"}}>
             <div onClick={()=>setView("browse")} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2,cursor:"pointer"}}>
-              <div style={{background:view==="browse"?"rgba(212,175,55,0.12)":"rgba(255,255,255,0.06)",border:"2px solid "+(view==="browse"?"#D4AF37":"rgba(255,255,255,0.22)"),borderRadius:8,width:36,height:36,display:"flex",alignItems:"center",justifyContent:"center",fontSize:19}}>🏫</div>
-              <span style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:8,color:view==="browse"?"#D4AF37":"rgba(255,255,255,0.4)",fontWeight:700,letterSpacing:"0.04em"}}>BROWSE</span>
+              <div style={{background:view==="browse"?"rgba(212,175,55,0.12)":"rgba(255,255,255,0.06)",border:"2px solid "+(view==="browse"?"#D4AF37":darkMode?"rgba(255,255,255,0.22)":"rgba(0,0,0,0.2)"),borderRadius:8,width:36,height:36,display:"flex",alignItems:"center",justifyContent:"center",fontSize:19}}>🏫</div>
+              <span style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:8,color:view==="browse"?"#D4AF37":darkMode?"rgba(255,255,255,0.4)":"rgba(0,0,0,0.45)",fontWeight:700,letterSpacing:"0.04em"}}>BROWSE</span>
             </div>
             <div onClick={()=>setView("board")} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2,cursor:"pointer",position:"relative"}}>
-              <div style={{background:"rgba(255,255,255,0.06)",border:"2px solid "+(view==="board"?"#D4AF37":"rgba(255,255,255,0.22)"),borderRadius:8,width:36,height:36,display:"flex",alignItems:"center",justifyContent:"center",fontSize:19}}>📋</div>
-              <span style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:8,color:view==="board"?"#D4AF37":"rgba(255,255,255,0.4)",fontWeight:700,letterSpacing:"0.04em"}}>BOARD</span>
+              <div style={{background:"rgba(255,255,255,0.06)",border:"2px solid "+(view==="board"?"#D4AF37":darkMode?"rgba(255,255,255,0.22)":"rgba(0,0,0,0.2)"),borderRadius:8,width:36,height:36,display:"flex",alignItems:"center",justifyContent:"center",fontSize:19}}>📋</div>
+              <span style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:8,color:view==="board"?"#D4AF37":darkMode?"rgba(255,255,255,0.4)":"rgba(0,0,0,0.45)",fontWeight:700,letterSpacing:"0.04em"}}>BOARD</span>
               {totalBoard>0 && <span style={{position:"absolute",top:-5,right:-5,background:"#e05050",borderRadius:10,minWidth:16,height:16,display:"flex",alignItems:"center",justifyContent:"center",fontSize:8,color:"#fff",fontWeight:700,padding:"0 3px"}}>{totalBoard}</span>}
             </div>
             <div onClick={()=>setView("my")} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2,cursor:"pointer"}}>
-              <div style={{background:"rgba(255,255,255,0.06)",border:"2px solid "+(view==="my"?"#D4AF37":"rgba(255,255,255,0.22)"),borderRadius:9,width:40,height:40,display:"flex",alignItems:"center",justifyContent:"center",fontSize:24,filter:"drop-shadow(0 0 6px rgba(255,255,255,0.7))"}}>🎓</div>
-              <span style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:8,color:view==="my"?"#D4AF37":"rgba(255,255,255,0.4)",fontWeight:700,letterSpacing:"0.04em"}}>MY SCHOOLS</span>
+              <div style={{background:"rgba(255,255,255,0.06)",border:"2px solid "+(view==="my"?"#D4AF37":darkMode?"rgba(255,255,255,0.22)":"rgba(0,0,0,0.2)"),borderRadius:9,width:40,height:40,display:"flex",alignItems:"center",justifyContent:"center",fontSize:24,filter:"drop-shadow(0 0 6px rgba(255,255,255,0.7))"}}>🎓</div>
+              <span style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:8,color:view==="my"?"#D4AF37":darkMode?"rgba(255,255,255,0.4)":"rgba(0,0,0,0.45)",fontWeight:700,letterSpacing:"0.04em"}}>MY SCHOOLS</span>
             </div>
           </div>
           <button onClick={()=>setDarkMode(d=>!d)} style={{background:"rgba(255,255,255,0.07)",border:"1px solid rgba(255,255,255,0.15)",borderRadius:18,padding:"5px 9px",cursor:"pointer",fontSize:14,flexShrink:0}}>{darkMode?"☀️":"🌙"}</button>
@@ -1917,7 +1916,7 @@ function CollegeCards() {
       {/* BROWSE */}
       {view==="browse" && (
         <div onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}
-          style={{flex:1,overflowY:"auto",overflowX:"hidden",display:"flex",flexDirection:"column",alignItems:"center",padding:"12px 10px 12px"}}>
+          style={{flex:1,overflowY:"auto",overflowX:"hidden",display:"flex",flexDirection:"column",alignItems:"center",padding:"12px 10px 12px",background:darkMode?"transparent":"rgba(0,0,0,0.04)"}}>
           {/* Card with overlaid arrows */}
           <div style={{position:"relative",width:340}}>
             <button onClick={prev} style={{position:"absolute",left:-14,top:240,zIndex:10,background:"rgba(0,0,0,0.6)",border:"1px solid rgba(255,255,255,0.18)",borderRadius:"50%",width:30,height:30,cursor:"pointer",color:"#fff",fontSize:18,display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
@@ -1976,6 +1975,7 @@ function CollegeCards() {
 
       {view==="my" && (
         <MyCollegesView
+          darkMode={darkMode}
           boardIds={allBoardIds}
           board={board}
           myStatus={myStatus}
