@@ -722,84 +722,6 @@ function hexToRgba(hex, alpha) {
   } catch(e) { return 'rgba(0,0,0,'+alpha+')'; }
 }
 
-// ─── WHY NOTE INPUT ───────────────────────────────────────────────────────
-function WhyNoteInput({ value, onChange, onDone, placeholder, compact }) {
-  const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(value);
-  const inputRef = useRef(null);
-  useEffect(() => { setDraft(value); }, [value]);
-
-  const commit = () => {
-    onChange(draft.trim());
-    setEditing(false);
-    if(onDone) onDone();
-  };
-
-  if(compact) {
-    if(!editing && !draft) return (
-      <div onClick={()=>{setEditing(true);setTimeout(()=>inputRef.current?.focus(),50);}}
-        style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:10,color:"rgba(212,175,55,0.3)",cursor:"pointer",marginTop:3,letterSpacing:"0.01em"}}>
-        + Why this one?
-      </div>
-    );
-    if(!editing && draft) return (
-      <div onClick={()=>{setEditing(true);setTimeout(()=>inputRef.current?.focus(),50);}}
-        style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:11,fontStyle:"italic",color:"rgba(255,224,140,0.6)",cursor:"pointer",marginTop:3,lineHeight:1.45,borderLeft:"1.5px solid rgba(212,175,55,0.22)",paddingLeft:7}}>
-        {draft}
-      </div>
-    );
-    return (
-      <div ref={wrapRef} style={{display:"flex",alignItems:"flex-end",gap:6,marginTop:3}}>
-        <textarea ref={inputRef} value={draft} onChange={e=>setDraft(e.target.value)}
-          onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();commit();}}}
-          placeholder="Why this one?"
-          rows={2}
-          style={{flex:1,background:"transparent",border:"none",borderBottom:"1px solid rgba(212,175,55,0.25)",borderRadius:0,padding:"4px 0",color:"rgba(255,232,160,0.85)",fontFamily:"'Source Sans 3',sans-serif",fontSize:11,fontStyle:"italic",outline:"none",resize:"none",boxSizing:"border-box",lineHeight:1.45}}
-          autoFocus
-        />
-        <button onMouseDown={e=>{e.preventDefault();commit();}}
-          style={{flexShrink:0,width:26,height:26,borderRadius:"50%",background:draft.trim()?"#D4AF37":"rgba(212,175,55,0.2)",border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",marginBottom:2,transition:"background 0.15s"}}>
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-            <path d="M6 10V2M6 2L2.5 5.5M6 2L9.5 5.5" stroke={draft.trim()?"#1a1000":"rgba(212,175,55,0.5)"} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-        </button>
-      </div>
-    );
-  }
-
-  // Full mode — iMessage-style with ↑ send button
-  return (
-    <div ref={wrapRef} style={{display:"flex",alignItems:"flex-end",gap:8}}>
-      <textarea ref={inputRef} value={draft} onChange={e=>setDraft(e.target.value)}
-        onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();commit();}}}
-        placeholder={placeholder||"What stood out to you..."}
-        rows={2}
-        autoFocus
-        style={{flex:1,background:"transparent",border:"none",borderBottom:"1px solid rgba(212,175,55,0.3)",borderRadius:0,padding:"6px 0",color:"rgba(255,232,160,0.9)",fontFamily:"'Source Sans 3',sans-serif",fontSize:12,fontStyle:"italic",outline:"none",resize:"none",boxSizing:"border-box",lineHeight:1.5}}
-      />
-      <button onMouseDown={e=>{e.preventDefault();commit();}}
-        style={{flexShrink:0,width:30,height:30,borderRadius:"50%",background:draft.trim()?"#D4AF37":"rgba(212,175,55,0.18)",border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",marginBottom:4,transition:"background 0.15s"}}>
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-          <path d="M7 12V2M7 2L3 6M7 2L11 6" stroke={draft.trim()?"#1a1000":"rgba(212,175,55,0.45)"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-      </button>
-    </div>
-  );
-}
-
-// ─── HAPTIC FEEDBACK ──────────────────────────────────────────────────────
-const haptic = (pattern) => {
-  try { if(navigator.vibrate) navigator.vibrate(pattern); } catch(e) {}
-};
-// Patterns
-const HAPTIC = {
-  tap:    8,        // light tap — button press
-  soft:   [6,30,6], // double soft — skip/maybe toggle
-  success:[10,40,20], // success — interested
-  swipe:  15,       // swipe navigation
-  flip:   12,       // card flip
-};
-
 function CollegeCard({ school, flipped, onFlip, triageStatus, onSkip, onMaybe, onInterested, onRemove }) {
   const [photoIdx, setPhotoIdx] = useState(0);
   const [fading, setFading] = useState(false);
@@ -942,12 +864,12 @@ function CollegeCard({ school, flipped, onFlip, triageStatus, onSkip, onMaybe, o
           {/* Dots */}
           <div style={{position:"absolute",top:14,right:10,display:"flex",gap:5,zIndex:4}}>
             {school.scenes.map((_,i)=>(
-              <div key={i} onClick={e=>{e.stopPropagation();haptic(HAPTIC.tap);setPhotoIdx(i);}} style={{width:7,height:7,borderRadius:"50%",background:i===photoIdx?"#e2bb47":"rgba(255,255,255,0.3)",cursor:"pointer"}}/>
+              <div key={i} onClick={e=>{e.stopPropagation();setPhotoIdx(i);}} style={{width:7,height:7,borderRadius:"50%",background:i===photoIdx?"#e2bb47":"rgba(255,255,255,0.3)",cursor:"pointer"}}/>
             ))}
           </div>
 
           {/* Flip zone - upper portion of card */}
-          <div onClick={()=>{haptic(HAPTIC.flip);onFlip(!flipped);}} style={{position:"absolute",top:0,left:0,right:0,bottom:232,zIndex:3,cursor:"pointer"}}/>
+          <div onClick={()=>onFlip(!flipped)} style={{position:"absolute",top:0,left:0,right:0,bottom:232,zIndex:3,cursor:"pointer"}}/>
 
           {/* Info block - anchored directly above buttons */}
           <div style={{position:"absolute",bottom:62,left:0,right:0,padding:"0 13px 10px",pointerEvents:"none"}}>
@@ -979,11 +901,11 @@ function CollegeCard({ school, flipped, onFlip, triageStatus, onSkip, onMaybe, o
           <div style={{position:"absolute",bottom:0,left:0,right:0,height:62,display:"flex",alignItems:"center",padding:"0 13px",zIndex:5}}>
             <div style={{display:"grid",gridTemplateColumns:"50px 1fr 1.2fr",gap:8,width:"100%"}}>
               {triageStatus==="interested" ? (
-                <button onClick={()=>{haptic(HAPTIC.tap);onRemove();}} style={{gridColumn:"1/-1",height:48,borderRadius:13,background:"linear-gradient(135deg,#f4dd85,#d1a834)",border:"none",color:"#241805",fontFamily:"'Source Sans 3',sans-serif",fontSize:12,fontWeight:700,cursor:"pointer"}}>
+                <button onClick={()=>onRemove()} style={{gridColumn:"1/-1",height:48,borderRadius:13,background:"linear-gradient(135deg,#f4dd85,#d1a834)",border:"none",color:"#241805",fontFamily:"'Source Sans 3',sans-serif",fontSize:12,fontWeight:700,cursor:"pointer"}}>
                   ❤️ Interested · Remove
                 </button>
               ) : (<>
-                <button className="btn-skip" onClick={()=>{haptic(HAPTIC.soft);onSkip();}} style={{
+                <button className="btn-skip" onClick={()=>onSkip()} style={{
                   height:48,borderRadius:13,
                   background:triageStatus==="skipped"?"linear-gradient(180deg,rgba(100,26,32,0.86),rgba(58,14,20,0.96))":"linear-gradient(180deg,rgba(20,18,24,0.94),rgba(12,11,17,0.96))",
                   border:"1px solid "+(triageStatus==="skipped"?"rgba(205,78,88,0.9)":"rgba(255,255,255,0.10)"),
@@ -992,7 +914,7 @@ function CollegeCard({ school, flipped, onFlip, triageStatus, onSkip, onMaybe, o
                   <span style={{fontSize:18,color:triageStatus==="skipped"?"#efb5b8":"rgba(255,220,220,0.62)",fontWeight:500,lineHeight:1}}>✕</span>
                   <span style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:7,fontWeight:700,letterSpacing:"0.1em",color:triageStatus==="skipped"?"#efb5b8":"rgba(255,200,200,0.35)"}}>SKIP</span>
                 </button>
-                <button className="btn-maybe" onClick={()=>{haptic(HAPTIC.soft);onMaybe();}} style={{
+                <button className="btn-maybe" onClick={()=>onMaybe()} style={{
                   height:48,borderRadius:13,
                   background:triageStatus==="maybe"?"linear-gradient(180deg,rgba(38,27,26,0.92),rgba(24,18,20,0.96))":"linear-gradient(180deg,rgba(20,18,24,0.94),rgba(12,11,17,0.96))",
                   border:"1px solid "+(triageStatus==="maybe"?"rgba(233,196,88,0.78)":"rgba(255,255,255,0.10)"),
@@ -1001,7 +923,7 @@ function CollegeCard({ school, flipped, onFlip, triageStatus, onSkip, onMaybe, o
                 }}>
                   🤷 {triageStatus==="maybe"?"Maybe ✓":"Maybe"}
                 </button>
-                <button className="btn-int" onClick={()=>{haptic(HAPTIC.success);onInterested();}} style={{
+                <button className="btn-int" onClick={()=>onInterested()} style={{
                   height:48,borderRadius:13,
                   background:"linear-gradient(135deg,#f4dd85 0%,#e5c95b 46%,#d1a834 100%)",
                   border:"1px solid rgba(255,236,169,0.55)",color:"#241805",
@@ -1016,7 +938,7 @@ function CollegeCard({ school, flipped, onFlip, triageStatus, onSkip, onMaybe, o
         </div>
         {/* BACK */}
         <div className="card-face card-back-face"
-          onClick={e=>{if(!e.target.closest('a,button')){haptic(HAPTIC.flip);onFlip(false);}}}
+          onClick={e=>{if(!e.target.closest('a,button')) onFlip(false);}}
           style={{background:"linear-gradient(160deg,#0f0f0f 0%,#1a1408 60%,#0d0d0d 100%)",border:"2px solid "+(borderColor),display:"flex",flexDirection:"column",overflow:"hidden"}}>
           <div className="shine"/>
           <div style={{position:"absolute",inset:6,border:"1px solid "+(accentColor)+"28",borderRadius:13,pointerEvents:"none",zIndex:0}}/>
@@ -1042,7 +964,7 @@ function CollegeCard({ school, flipped, onFlip, triageStatus, onSkip, onMaybe, o
               const pct=el.scrollTop/(el.scrollHeight-el.clientHeight||1);
               thumb.style.height=thumbH+'px';
               thumb.style.top=Math.round(pct*(trackH-thumbH))+'px';
-            }} style={{flex:1,overflowY:"scroll",overflowX:"hidden",padding:"2px 4px 2px 8px"}}>
+            }} ref={backScrollRef} style={{flex:1,overflowY:"scroll",overflowX:"hidden",padding:"2px 4px 2px 8px"}}>
             {school.stats.map((s,i) => {
               const h = hovStat===i;
               return (
@@ -1637,7 +1559,7 @@ function BoardView({ board, onRemove, onMoveLane, onReorder, onRankReorder, onRa
   );
 }
 // ─── MY COLLEGES VIEW ──────────────────────────────────────────────────────
-function MyCollegesView({ boardIds, board, myStatus, onMoveStatus, onRemoveFromBoard, onExpand, skipped, onUnskip, onUnskipAll, darkMode, notes, onNoteChange }) {
+function MyCollegesView({ boardIds, board, myStatus, onMoveStatus, onRemoveFromBoard, onExpand, skipped, onUnskip, onUnskipAll, darkMode }) {
   const getStatus = id => {
     if(myStatus.applied.includes(id)) return "applied";
     if(myStatus.applying.includes(id)) return "applying";
@@ -1666,11 +1588,6 @@ function MyCollegesView({ boardIds, board, myStatus, onMoveStatus, onRemoveFromB
   return (
     <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden"}}>
       <div style={{flex:1,overflowY:"auto",padding:"10px 12px 28px"}}>
-        {boardIds.length>0 && Object.keys(notes||{}).filter(k=>boardIds.includes(k)&&notes[k]).length===0 && (
-          <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:11,color:"rgba(212,175,55,0.4)",textAlign:"center",padding:"8px 0 4px",letterSpacing:"0.02em"}}>
-            ✏️ Add notes to remember why you liked each school
-          </div>
-        )}
         {buckets.map(bucket => {
           const ids = boardIds.filter(id => getStatus(id)===bucket.key);
           if(ids.length===0) return null;
@@ -1703,9 +1620,6 @@ function MyCollegesView({ boardIds, board, myStatus, onMoveStatus, onRemoveFromB
                           <div style={{fontFamily:"'Source Sans 3',sans-serif",fontWeight:600,fontSize:10,color:"#fff",marginTop:1}}>{item.v||"—"}</div>
                         </div>
                       ))}
-                    </div>
-                    <div onClick={e=>e.stopPropagation()} style={{marginBottom:6}}>
-                      <WhyNoteInput compact value={notes&&notes[id]||""} onChange={v=>onNoteChange(id,v)} placeholder="Why this one?"/>
                     </div>
                     <div style={{display:"flex",gap:6}} onClick={e=>e.stopPropagation()}>
                       <select value={status} onChange={e=>onMoveStatus(id,e.target.value)} style={{flex:1,background:"rgba(0,0,0,0.3)",border:"1px solid "+statusColor+"55",borderRadius:8,color:statusColor,fontFamily:"'Source Sans 3',sans-serif",fontSize:11,padding:"5px 8px",cursor:"pointer",outline:"none",fontWeight:700}}>
@@ -1777,14 +1691,11 @@ function CollegeCards() {
   const save = (key, val) => { try { localStorage.setItem(key, JSON.stringify(val)); } catch(e) {} };
 
   const [board, setBoard] = useState(() => load("cc_board", {reach:[],match:[],safety:[],undecided:[],rankOrder:[]}));
-  const [notes, setNotes] = useState(() => load("cc_notes", {}));
-  const [whyPrompt, setWhyPrompt] = useState(null); // id of school to prompt
   const [triage, setTriage] = useState(() => load("cc_triage", {maybe:[], skipped:[]}));
   const [myStatus, setMyStatus] = useState(() => load("cc_mystatus", {applying:[], applied:[]}));
 
   useEffect(() => save("cc_board", board), [board]);
   useEffect(() => save("cc_triage", triage), [triage]);
-  useEffect(() => save("cc_notes", notes), [notes]);
   useEffect(() => save("cc_mystatus", myStatus), [myStatus]);
   const [expandId, setExpandId] = useState(null);
   const [showFeedback, setShowFeedback] = useState(false);
@@ -1876,9 +1787,8 @@ function CollegeCards() {
     setBoard(b=>({...b,undecided:[...b.undecided,id],rankOrder:[...b.rankOrder,id]}));
     setTriage(t=>({...t,maybe:t.maybe.filter(x=>x!==id),skipped:t.skipped.filter(x=>x!==id)}));
     sessionTriaged.current++;
-    track("school_triaged", { school_id: id, action: "interested", board_size: allBoardIds.length+1, session_views: sessionViews.current });
+    track("school_triaged", { school_id: id, action: "interested", board_size: allBoardIds.length+1, session_views: sessionViews.current, pct_triaged: sessionViews.current > 0 ? Math.round((sessionTriaged.current/sessionViews.current)*100) : 0 });
     setCardFlipped(false);
-    setTimeout(() => setWhyPrompt(id), 800);
   };
   const markMaybe = id => {
     if(triage.maybe.includes(id)) {
@@ -1944,7 +1854,7 @@ function CollegeCards() {
     touchStart.current = null;
     const dy = e.changedTouches[0].clientY - (touchStartY.current||0);
     if(Math.abs(dx)<60 || Math.abs(dx)<Math.abs(dy)*1.5) return;
-    haptic(HAPTIC.swipe); if(dx<0) next(); else prev();
+    if(dx<0) next(); else prev();
   };
 
   const isInterested = school && allBoardIds.includes(school.id);
@@ -2096,8 +2006,6 @@ function CollegeCards() {
             <button onClick={next} style={{position:"absolute",right:-14,top:240,zIndex:10,background:"rgba(0,0,0,0.6)",border:"1px solid rgba(255,255,255,0.18)",borderRadius:"50%",width:30,height:30,cursor:"pointer",color:"#fff",fontSize:18,display:"flex",alignItems:"center",justifyContent:"center"}}>›</button>
           </div>
 
-
-
           {cur?.t==="ad" && <div style={{marginTop:8,fontFamily:"'Source Sans 3',sans-serif",fontSize:8,color:"rgba(255,255,255,0.18)",letterSpacing:"0.1em"}}>SPONSORED CONTENT</div>}
 
           {/* Dots */}
@@ -2125,8 +2033,6 @@ function CollegeCards() {
       {view==="my" && (
         <MyCollegesView
           darkMode={darkMode}
-          notes={notes}
-          onNoteChange={(id,v)=>setNotes(n=>({...n,[id]:v}))}
           boardIds={allBoardIds}
           board={board}
           myStatus={myStatus}
@@ -2145,39 +2051,24 @@ function CollegeCards() {
           Rankings: US News 2025 · Data: Common Data Sets 2024–25
         </div>
         <button onClick={()=>setShowFeedback(true)} style={{background:"transparent",border:"none",cursor:"pointer",fontFamily:"'Source Sans 3',sans-serif",fontSize:9,color:"rgba(212,175,55,0.45)",letterSpacing:"0.06em"}}>💬 Feedback</button>
-      </div>
-    </div>
-
-      {/* Why this one? — fixed overlay above keyboard */}
-      {whyPrompt && (() => {
-        const ws = SCHOOLS.find(s=>s.id===whyPrompt);
+      {/* Why this one? — fixed above keyboard */}
+      {whyPrompt && (()=>{
+        const ws=SCHOOLS.find(s=>s.id===whyPrompt);
         if(!ws) return null;
         return (
-          <div style={{
-            position:"fixed",bottom:0,left:"50%",transform:"translateX(-50%)",
-            width:"100%",maxWidth:430,
-            background:"linear-gradient(180deg,rgba(18,12,2,0.97),rgba(12,8,0,0.99))",
-            borderTop:"1px solid rgba(212,175,55,0.25)",
-            padding:"10px 16px 20px",
-            zIndex:999,
-            boxShadow:"0 -4px 24px rgba(0,0,0,0.6)",
-          }}>
+          <div style={{position:"fixed",bottom:0,left:"50%",transform:"translateX(-50%)",width:"100%",maxWidth:430,background:"linear-gradient(180deg,rgba(18,12,2,0.97),rgba(12,8,0,0.99))",borderTop:"1px solid rgba(212,175,55,0.25)",padding:"10px 16px 20px",zIndex:999,boxShadow:"0 -4px 24px rgba(0,0,0,0.6)"}}>
             <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
               <div style={{display:"flex",alignItems:"center",gap:7}}>
                 <span style={{fontSize:16}}>{ws.mascot}</span>
-                <span style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:11,color:"rgba(212,175,55,0.65)",letterSpacing:"0.03em"}}>{ws.name}</span>
+                <span style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:11,color:"rgba(212,175,55,0.65)"}}>{ws.name}</span>
               </div>
               <button onClick={()=>setWhyPrompt(null)} style={{background:"none",border:"none",cursor:"pointer",color:"rgba(255,255,255,0.3)",fontSize:16,lineHeight:1,padding:"2px 6px"}}>✕</button>
             </div>
-            <WhyNoteInput
-              value={notes[whyPrompt]||""}
-              onChange={v=>setNotes(n=>({...n,[whyPrompt]:v}))}
-              onDone={()=>setWhyPrompt(null)}
-              placeholder="What stood out to you..."
-            />
+            <WhyNoteInput value={notes[whyPrompt]||""} onChange={v=>setNotes(n=>({...n,[whyPrompt]:v}))} onDone={()=>setWhyPrompt(null)} placeholder="What stood out to you..."/>
           </div>
         );
       })()}
+      </div>
     </div>
     </div>
   );
