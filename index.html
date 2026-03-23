@@ -722,7 +722,7 @@ function hexToRgba(hex, alpha) {
   } catch(e) { return 'rgba(0,0,0,'+alpha+')'; }
 }
 
-function CollegeCard({ school, flipped, onFlip, triageStatus, onSkip, onMaybe, onInterested, onRemove }) {
+function CollegeCard({ school, flipped, onFlip, triageStatus, onSkip, onMaybe, onInterested, onRemove, darkMode=true }) {
   const [photoIdx, setPhotoIdx] = useState(0);
   const [fading, setFading] = useState(false);
   const [hovStat, setHovStat] = useState(null);
@@ -923,14 +923,14 @@ function CollegeCard({ school, flipped, onFlip, triageStatus, onSkip, onMaybe, o
         {/* BACK */}
         <div className="card-face card-back-face"
           onClick={e=>{if(!e.target.closest('a,button')) onFlip(false);}}
-          style={{background:"linear-gradient(160deg,#0f0f0f 0%,#1a1408 60%,#0d0d0d 100%)",border:"2px solid "+(borderColor),display:"flex",flexDirection:"column",overflow:"hidden"}}>
+          style={{background:darkMode?"linear-gradient(160deg,#0f0f0f 0%,#1a1408 60%,#0d0d0d 100%)":"linear-gradient(160deg,#ffffff 0%,#f8f4ee 60%,#f0ece4 100%)",border:"2px solid "+(borderColor),display:"flex",flexDirection:"column",overflow:"hidden"}}>
           <div className="shine"/>
           <div style={{position:"absolute",inset:6,border:"1px solid "+(accentColor)+"28",borderRadius:13,pointerEvents:"none",zIndex:0}}/>
-          <div style={{flexShrink:0,padding:"10px 14px 8px",borderBottom:"1px solid "+(accentColor)+"28",display:"flex",alignItems:"center",gap:8}}>
+          <div style={{flexShrink:0,padding:"10px 14px 8px",borderBottom:"1px solid "+(accentColor)+(darkMode?"28":"44"),display:"flex",alignItems:"center",gap:8}}>
             <div style={{fontSize:22}}>{school.mascot}</div>
             <div>
-              <div style={{fontFamily:"'Playfair Display',serif",fontWeight:900,fontSize:15,color:"#fff",lineHeight:1}}>{school.name}</div>
-              <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:8,letterSpacing:"0.18em",color:accentColor,marginTop:2,textTransform:"uppercase"}}>Class of 2029 Profile</div>
+              <div style={{fontFamily:"'Playfair Display',serif",fontWeight:900,fontSize:15,color:darkMode?"#fff":"#1a1a1a",lineHeight:1}}>{school.name}</div>
+              <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:8,letterSpacing:"0.18em",color:darkMode?accentColor:school.primaryColor,marginTop:2,textTransform:"uppercase"}}>Class of 2029 Profile</div>
             </div>
             <div style={{marginLeft:"auto",background:accentColor+"22",border:"1px solid "+(accentColor)+"44",borderRadius:6,padding:"2px 8px",textAlign:"center"}}>
               <div style={{fontFamily:"'Playfair Display',serif",fontSize:10,color:accentColor,lineHeight:1,fontWeight:900}}>{school.tier.toUpperCase()}</div>
@@ -1010,7 +1010,7 @@ function WelcomeCard({ onDismiss }) {
 
 // ─── SEARCH CARD ───────────────────────────────────────────────────────────
 function SearchCard({ onResult, onSurprise, onJumpIn }) {
-  const [f, setF] = useState({region:"",state:"",setting:"",size:"",testOpt:false,d1:false,ivyPlus:false,spirit:0,acad:0,social:0,beauty:0,maxAccept:100});
+  const [f, setF] = useState({region:"",state:"",states:[],setting:"",size:"",testOpt:false,d1:false,ivyPlus:false,spirit:0,acad:0,social:0,beauty:0,maxAccept:100});
   const [committed, setCommitted] = useState(100);
   const [nameQ, setNameQ] = useState("");
   const regions = {Northeast:["MA","NH","VT","CT","RI","NY","NJ","PA","ME"],South:["TN","NC","VA","GA","FL"],Midwest:["OH","IN","IL","MI","WI"],West:["CA","CO","WA","OR"]};
@@ -1018,7 +1018,7 @@ function SearchCard({ onResult, onSurprise, onJumpIn }) {
   const d1Ids = ["bc","cornell","columbia","yale","harvard","dartmouth","brown","princeton","vanderbilt","duke","bu","tufts","lehigh","bucknell","colgate","oberlin"];
   const getRegion = loc => { for(const [r,st] of Object.entries(regions)) if(st.some(s=>loc.includes(s))) return r; return "Other"; };
   const sizeOk = (v,enroll) => { const n=parseInt((enroll||"").replace(/[^0-9]/g,"")); if(v==="Small")return n<3000; if(v==="Medium")return n>=3000&&n<=10000; if(v==="Large")return n>10000; return true; };
-  const CLEAR = {region:"",state:"",setting:"",size:"",testOpt:false,d1:false,ivyPlus:false,spirit:0,acad:0,social:0,beauty:0,maxAccept:100};
+  const CLEAR = {region:"",state:"",states:[],setting:"",size:"",testOpt:false,d1:false,ivyPlus:false,spirit:0,acad:0,social:0,beauty:0,maxAccept:100};
   const matches = SCHOOLS.filter(s => {
     const loc = s.stats.find(x=>x.label==="Location")?.value||"";
     const set = s.stats.find(x=>x.label==="Campus Setting")?.value||"";
@@ -1026,7 +1026,7 @@ function SearchCard({ onResult, onSurprise, onJumpIn }) {
     const to  = s.stats.find(x=>x.label==="Test Optional?")?.value||"";
     const acc = parseInt((s.stats.find(x=>x.label==="Acceptance Rate")?.value||"100").replace(/[^0-9]/g,""));
     if(f.region && getRegion(loc)!==f.region) return false;
-    if(f.state && !loc.toUpperCase().includes(","+f.state) && !loc.toUpperCase().includes(", "+f.state)) return false;
+    if(f.states&&f.states.length>0 && !f.states.some(st=>loc.includes(", "+st)||loc.includes(","+st))) return false;
     if(f.setting && !set.toLowerCase().includes(f.setting.toLowerCase())) return false;
     if(f.size && !sizeOk(f.size,enr)) return false;
     if(f.testOpt && !to.includes(Yes)) return false;
@@ -1091,14 +1091,15 @@ function SearchCard({ onResult, onSurprise, onJumpIn }) {
           </div>
           <div style={{flex:1,overflow:"hidden"}}><div className="search-scroll" style={{height:"100%",overflowY:"scroll",overflowX:"hidden",padding:"8px 14px 8px 14px",display:"flex",flexDirection:"column",gap:10,scrollbarWidth:"thin",scrollbarColor:"rgba(212,175,55,0.6) rgba(255,255,255,0.06)"}}>
             <div>
-              <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:11,color:"rgba(255,255,255,0.65)",fontWeight:600,marginBottom:6}}>State</div>
-              <select value={f.state} onChange={e=>setF(x=>({...x,state:e.target.value,region:""}))}
-                style={{width:"100%",background:"#0e0e1a",border:"1px solid "+(f.state?"rgba(212,175,55,0.6)":"rgba(255,255,255,0.15)"),borderRadius:8,padding:"7px 10px",color:f.state?"#D4AF37":"rgba(255,255,255,0.5)",fontFamily:"'Source Sans 3',sans-serif",fontSize:11,cursor:"pointer",outline:"none"}}>
-                <option value="">All States</option>
-                {["Alabama","Alaska","Arizona","Arkansas","California","Colorado","Connecticut","Delaware","Florida","Georgia","Hawaii","Idaho","Illinois","Indiana","Iowa","Kansas","Kentucky","Louisiana","Maine","Maryland","Massachusetts","Michigan","Minnesota","Mississippi","Missouri","Montana","Nebraska","Nevada","New Hampshire","New Jersey","New Mexico","New York","North Carolina","North Dakota","Ohio","Oklahoma","Oregon","Pennsylvania","Rhode Island","South Carolina","South Dakota","Tennessee","Texas","Utah","Vermont","Virginia","Washington","West Virginia","Wisconsin","Wyoming"].map(s=>(
-                  <option key={s} value={s.slice(0,2).toUpperCase()}>{s}</option>
-                ))}
-              </select>
+              <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:11,color:"rgba(255,255,255,0.65)",fontWeight:600,marginBottom:6}}>State {(f.states&&f.states.length>0)&&<span style={{color:"rgba(212,175,55,0.7)",fontWeight:400}}>({f.states.length} selected)</span>}</div>
+              <div style={{display:"flex",flexWrap:"wrap",gap:3}}>
+                {[["MA","MA"],["NY","NY"],["NJ","NJ"],["PA","PA"],["CT","CT"],["NH","NH"],["VT","VT"],["RI","RI"],["ME","ME"],["TN","TN"],["NC","NC"],["VA","VA"],["GA","GA"],["FL","FL"],["OH","OH"],["IL","IL"],["MI","MI"],["WI","WI"],["IN","IN"],["CA","CA"],["CO","CO"],["WA","WA"],["OR","OR"],["TX","TX"],["MD","MD"],["DC","DC"]].map(([abbr])=>{
+                  const on=(f.states||[]).includes(abbr);
+                  return <div key={abbr} onClick={()=>setF(x=>{const cur=x.states||[];return{...x,states:on?cur.filter(s=>s!==abbr):[...cur,abbr],region:""}})} style={{padding:"3px 7px",borderRadius:10,cursor:"pointer",fontFamily:"'Source Sans 3',sans-serif",fontSize:10,fontWeight:on?700:400,background:on?"rgba(212,175,55,0.22)":"rgba(255,255,255,0.06)",border:"1px solid "+(on?"rgba(212,175,55,0.6)":"rgba(255,255,255,0.1)"),color:on?"#D4AF37":"rgba(255,255,255,0.5)",userSelect:"none"}}>{abbr}</div>;
+                })}
+              </div>
+              {(f.states||[]).length>0&&<div onClick={()=>setF(x=>({...x,states:[]}))} style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:9,color:"rgba(212,175,55,0.5)",marginTop:4,cursor:"pointer",textDecoration:"underline"}}>clear states</div>}
+            </div>
             </div>
             {[{label:"Region",key:"region",opts:["Northeast","South","Midwest","West"]},{label:"Setting",key:"setting",opts:["Urban","Suburban","Rural","Small Town"]},{label:"Size",key:"size",opts:["Small","Medium","Large"]}].map(({label,key,opts}) => (
               <div key={key}>
@@ -1835,10 +1836,11 @@ function CollegeCards() {
     '    .tab-btn{background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0;flex:1;position:relative;}',
     '    .tab-badge{position:absolute;top:2px;right:calc(50% - 18px);background:#e05050;border-radius:10px;min-width:16px;height:16px;display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;font-weight:700;padding:0 3px;}',
     '    ::-webkit-scrollbar{width:3px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.12);border-radius:2px;}',
-    '    .search-scroll::-webkit-scrollbar{width:5px;display:block !important;}',
-    '    .search-scroll::-webkit-scrollbar-track{background:rgba(212,175,55,0.15);border-radius:3px;}',
-    '    .search-scroll::-webkit-scrollbar-thumb{background:rgba(212,175,55,0.5);border-radius:2px;}',
-    '    .search-scroll::-webkit-scrollbar-thumb:hover{background:rgba(212,175,55,0.8);}',
+    '    .search-scroll{scrollbar-width:thin !important;scrollbar-color:rgba(212,175,55,0.7) rgba(255,255,255,0.1) !important;overflow-y:scroll !important;}    .search-scroll::-webkit-scrollbar{width:6px !important;display:block !important;}    .search-scroll::-webkit-scrollbar-track{background:rgba(255,255,255,0.1) !important;border-radius:3px;}    .search-scroll::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#e4bd47,#b8860b) !important;border-radius:3px !important;min-height:30px;}    .search-scroll::-webkit-scrollbar-thumb:hover{background:#D4AF37 !important;}',
+    '    .search-scroll::-webkit-scrollbar{width:6px !important;display:block !important;}',
+    '    .search-scroll::-webkit-scrollbar-track{background:rgba(255,255,255,0.08) !important;border-radius:3px !important;}',
+    '    .search-scroll::-webkit-scrollbar-thumb{background:#c9972a !important;border-radius:3px !important;min-height:40px !important;}',
+    '    .search-scroll::-webkit-scrollbar-thumb:hover{background:#D4AF37 !important;}',
   ].join("\n");
   const NavTab = ({id, icon, label, badge}) => {
     const active = view===id;
@@ -1853,8 +1855,8 @@ function CollegeCards() {
   };
 
   return (
-    <div style={{display:"flex",justifyContent:"center",minHeight:"100vh",background:"#000"}}>
-    <div style={{width:"100%",maxWidth:430,minHeight:"100vh",maxHeight:"100vh",background:darkMode?"radial-gradient(ellipse at 55% 40%,#120808 0%,#080510 50%,#000 100%)":"linear-gradient(180deg,#f5f0ea 0%,#ede8e0 100%)",display:"flex",flexDirection:"column",overflowX:"hidden",position:"relative"}}>
+    <div style={{display:"flex",justifyContent:"center",minHeight:"100vh",background:darkMode?"#000":"#fff"}}>
+    <div style={{width:"100%",maxWidth:430,minHeight:"100vh",maxHeight:"100vh",background:darkMode?"radial-gradient(ellipse at 55% 40%,#120808 0%,#080510 50%,#000 100%)":"#fff",display:"flex",flexDirection:"column",overflowX:"hidden",position:"relative"}}>
       <style>{CSS}</style>
 
       {expandId && <FullCardModal schoolId={expandId} onClose={()=>setExpandId(null)}/>}
@@ -1938,7 +1940,7 @@ function CollegeCards() {
             {cur?.t==="school"  && (
               <div style={{transform:`scale(${cardScale})`,transformOrigin:"top center",width:340,height:530,marginBottom:`${530*(cardScale-1)}px`}}>
                 <CollegeCard key={school.id} school={school} flipped={cardFlipped} onFlip={setCardFlipped}
-                  triageStatus={triageStatus}
+                  triageStatus={triageStatus} darkMode={darkMode}
                   onSkip={()=>markSkip(school.id)}
                   onMaybe={()=>markMaybe(school.id)}
                   onInterested={()=>markInterested(school.id)}
