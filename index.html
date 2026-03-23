@@ -825,17 +825,17 @@ function CollegeCard({ school, flipped, onFlip, triageStatus, onSkip, onMaybe, o
           WebkitTransform: "translateZ(0)",
           transform: "translateZ(0)",
         }}>
-          {/* Hero — top 55% only, prevents SVG stretching */}
-          <div style={{position:"absolute",top:0,left:0,right:0,height:"55%",overflow:"hidden"}}>
-            <div className={"scene-wrap"+(fading?" fading":"")} style={{position:"absolute",inset:0,transform:"scale(1.04)",transformOrigin:"50% 20%"}}><Scene/></div>
+          {/* Hero — fixed height prevents SVG stretching */}
+          <div style={{position:"absolute",top:0,left:0,right:0,height:235,overflow:"hidden"}}>
+            <div className={"scene-wrap"+(fading?" fading":"")} style={{position:"absolute",inset:0}}><Scene/></div>
           </div>
 
-          {/* Gradient */}
+          {/* Gradient overlay from ~235px down */}
           <div style={{position:"absolute",inset:0,pointerEvents:"none",background:
-            "linear-gradient(180deg,rgba(0,0,0,0) 0%,rgba(0,0,0,0) 22%,"+
-            hexToRgba(primaryColor,0.45)+" 40%,"+
-            hexToRgba(primaryColor,0.9)+" 54%,"+
-            gradTo+" 66%)"
+            "linear-gradient(180deg,rgba(0,0,0,0) 0%,rgba(0,0,0,0) 30%,"+
+            hexToRgba(primaryColor,0.4)+" 42%,"+
+            hexToRgba(primaryColor,0.88)+" 52%,"+
+            gradTo+" 64%)"
           }}/>
 
           {/* Rank badge */}
@@ -1705,13 +1705,13 @@ function CollegeCards() {
     setTriage(t=>({...t,maybe:t.maybe.filter(x=>x!==id),skipped:t.skipped.filter(x=>x!==id)}));
     sessionTriaged.current++;
     track("school_triaged", { school_id: id, action: "interested", board_size: allBoardIds.length+1, session_views: sessionViews.current, pct_triaged: sessionViews.current > 0 ? Math.round((sessionTriaged.current/sessionViews.current)*100) : 0 });
-    setCardFlipped(false); next();
+    setCardFlipped(false);
   };
   const markMaybe = id => {
     if(!triage.maybe.includes(id)) setTriage(t=>({...t,maybe:[...t.maybe,id],skipped:t.skipped.filter(x=>x!==id)}));
     sessionTriaged.current++;
     track("school_triaged", { school_id: id, action: "maybe", session_views: sessionViews.current });
-    setCardFlipped(false); next();
+    setCardFlipped(false);
   };
   const markSkip = id => {
     if(triage.skipped.includes(id)) {
