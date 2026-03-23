@@ -722,6 +722,21 @@ function hexToRgba(hex, alpha) {
   } catch(e) { return 'rgba(0,0,0,'+alpha+')'; }
 }
 
+function WhyNoteInput({ value, onChange, onDone, placeholder, compact }) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(value);
+  const inputRef = useRef(null);
+  const wrapRef = useRef(null);
+  useEffect(() => { setDraft(value); }, [value]);
+  const commit = () => { onChange(draft.trim()); setEditing(false); if(onDone) onDone(); };
+  if(compact) {
+    if(!editing && !draft) return (<div onClick={()=>{setEditing(true);setTimeout(()=>inputRef.current?.focus(),50);}} style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:10,color:"rgba(212,175,55,0.3)",cursor:"pointer",marginTop:3}}>+ Why this one?</div>);
+    if(!editing && draft) return (<div onClick={()=>{setEditing(true);setTimeout(()=>inputRef.current?.focus(),50);}} style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:11,fontStyle:"italic",color:"rgba(255,224,140,0.6)",cursor:"pointer",marginTop:3,lineHeight:1.45,borderLeft:"1.5px solid rgba(212,175,55,0.22)",paddingLeft:7}}>{draft}</div>);
+    return (<div ref={wrapRef} style={{display:"flex",alignItems:"flex-end",gap:6,marginTop:3}}><textarea ref={inputRef} value={draft} onChange={e=>setDraft(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();commit();}}} placeholder="Why this one?" rows={2} autoFocus style={{flex:1,background:"transparent",border:"none",borderBottom:"1px solid rgba(212,175,55,0.25)",padding:"4px 0",color:"rgba(255,232,160,0.85)",fontFamily:"'Source Sans 3',sans-serif",fontSize:11,fontStyle:"italic",outline:"none",resize:"none",boxSizing:"border-box",lineHeight:1.45}}/><button onMouseDown={e=>{e.preventDefault();commit();}} style={{flexShrink:0,width:26,height:26,borderRadius:"50%",background:draft.trim()?"#D4AF37":"rgba(212,175,55,0.2)",border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",marginBottom:2}}><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 10V2M6 2L2.5 5.5M6 2L9.5 5.5" stroke={draft.trim()?"#1a1000":"rgba(212,175,55,0.4)"} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg></button></div>);
+  }
+  return (<div ref={wrapRef} style={{display:"flex",alignItems:"flex-end",gap:8}}><textarea ref={inputRef} value={draft} onChange={e=>setDraft(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();commit();}}} placeholder={placeholder||"What stood out to you..."} rows={2} autoFocus style={{flex:1,background:"transparent",border:"none",borderBottom:"1px solid rgba(212,175,55,0.3)",padding:"6px 0",color:"rgba(255,232,160,0.9)",fontFamily:"'Source Sans 3',sans-serif",fontSize:12,fontStyle:"italic",outline:"none",resize:"none",boxSizing:"border-box",lineHeight:1.5}}/><button onMouseDown={e=>{e.preventDefault();commit();}} style={{flexShrink:0,width:30,height:30,borderRadius:"50%",background:draft.trim()?"#D4AF37":"rgba(212,175,55,0.18)",border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",marginBottom:4}}><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 12V2M7 2L3 6M7 2L11 6" stroke={draft.trim()?"#1a1000":"rgba(212,175,55,0.4)"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg></button></div>);
+}
+
 function CollegeCard({ school, flipped, onFlip, triageStatus, onSkip, onMaybe, onInterested, onRemove }) {
   const [photoIdx, setPhotoIdx] = useState(0);
   const [fading, setFading] = useState(false);
@@ -1691,11 +1706,14 @@ function CollegeCards() {
   const save = (key, val) => { try { localStorage.setItem(key, JSON.stringify(val)); } catch(e) {} };
 
   const [board, setBoard] = useState(() => load("cc_board", {reach:[],match:[],safety:[],undecided:[],rankOrder:[]}));
+  const [notes, setNotes] = useState(() => load("cc_notes", {}));
+  const [whyPrompt, setWhyPrompt] = useState(null);
   const [triage, setTriage] = useState(() => load("cc_triage", {maybe:[], skipped:[]}));
   const [myStatus, setMyStatus] = useState(() => load("cc_mystatus", {applying:[], applied:[]}));
 
   useEffect(() => save("cc_board", board), [board]);
   useEffect(() => save("cc_triage", triage), [triage]);
+  useEffect(() => save("cc_notes", notes), [notes]);
   useEffect(() => save("cc_mystatus", myStatus), [myStatus]);
   const [expandId, setExpandId] = useState(null);
   const [showFeedback, setShowFeedback] = useState(false);
@@ -1789,6 +1807,7 @@ function CollegeCards() {
     sessionTriaged.current++;
     track("school_triaged", { school_id: id, action: "interested", board_size: allBoardIds.length+1, session_views: sessionViews.current, pct_triaged: sessionViews.current > 0 ? Math.round((sessionTriaged.current/sessionViews.current)*100) : 0 });
     setCardFlipped(false);
+    setTimeout(() => setWhyPrompt(id), 800);
   };
   const markMaybe = id => {
     if(triage.maybe.includes(id)) {
@@ -2052,6 +2071,12 @@ function CollegeCards() {
         </div>
         <button onClick={()=>setShowFeedback(true)} style={{background:"transparent",border:"none",cursor:"pointer",fontFamily:"'Source Sans 3',sans-serif",fontSize:9,color:"rgba(212,175,55,0.45)",letterSpacing:"0.06em"}}>💬 Feedback</button>
       </div>
+
+      {whyPrompt && (()=>{
+        const ws=SCHOOLS.find(s=>s.id===whyPrompt);
+        if(!ws) return null;
+        return (<div style={{position:"fixed",bottom:0,left:"50%",transform:"translateX(-50%)",width:"100%",maxWidth:430,background:"linear-gradient(180deg,rgba(18,12,2,0.97),rgba(12,8,0,0.99))",borderTop:"1px solid rgba(212,175,55,0.25)",padding:"10px 16px 20px",zIndex:999,boxShadow:"0 -4px 24px rgba(0,0,0,0.6)"}}><div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}><div style={{display:"flex",alignItems:"center",gap:7}}><span style={{fontSize:16}}>{ws.mascot}</span><span style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:11,color:"rgba(212,175,55,0.65)"}}>{ws.name}</span></div><button onClick={()=>setWhyPrompt(null)} style={{background:"none",border:"none",cursor:"pointer",color:"rgba(255,255,255,0.3)",fontSize:16,lineHeight:1,padding:"2px 6px"}}>✕</button></div><WhyNoteInput value={notes[whyPrompt]||""} onChange={v=>setNotes(n=>({...n,[whyPrompt]:v}))} onDone={()=>setWhyPrompt(null)} placeholder="What stood out to you..."/></div>);
+      })()}
     </div>
     </div>
   );
