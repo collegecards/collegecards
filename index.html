@@ -734,16 +734,15 @@ function WhyNoteInput({ value, onChange, onDone, placeholder, compact }) {
     if(onDone) onDone();
   };
   if(compact) {
-    // Board card mode — show inline
     if(!editing && !draft) return (
       <div onClick={()=>{setEditing(true);setTimeout(()=>inputRef.current?.focus(),50);}}
-        style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:10,color:"rgba(212,175,55,0.4)",cursor:"pointer",marginTop:4,letterSpacing:"0.02em"}}>
-        ✏️ Why this one?
+        style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:10,color:"rgba(212,175,55,0.3)",cursor:"pointer",marginTop:3,letterSpacing:"0.01em"}}>
+        + Why this one?
       </div>
     );
     if(!editing && draft) return (
       <div onClick={()=>{setEditing(true);setTimeout(()=>inputRef.current?.focus(),50);}}
-        style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:11,fontStyle:"italic",color:"rgba(255,224,140,0.75)",cursor:"pointer",marginTop:4,lineHeight:1.4,background:"rgba(212,175,55,0.06)",borderRadius:6,padding:"4px 7px",borderLeft:"2px solid rgba(212,175,55,0.3)"}}>
+        style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:11,fontStyle:"italic",color:"rgba(255,224,140,0.6)",cursor:"pointer",marginTop:3,lineHeight:1.45,borderLeft:"1.5px solid rgba(212,175,55,0.22)",paddingLeft:7}}>
         {draft}
       </div>
     );
@@ -751,28 +750,24 @@ function WhyNoteInput({ value, onChange, onDone, placeholder, compact }) {
       <textarea ref={inputRef} value={draft} onChange={e=>setDraft(e.target.value)}
         onBlur={commit}
         onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();commit();}}}
-        placeholder={placeholder||"Why this one?"}
+        placeholder="Why this one?"
         rows={2}
-        style={{width:"100%",background:"rgba(212,175,55,0.07)",border:"1px solid rgba(212,175,55,0.35)",borderRadius:7,padding:"6px 8px",color:"rgba(255,240,180,0.9)",fontFamily:"'Source Sans 3',sans-serif",fontSize:11,fontStyle:"italic",outline:"none",resize:"none",boxSizing:"border-box",marginTop:4,lineHeight:1.4}}
+        style={{width:"100%",background:"transparent",border:"none",borderBottom:"1px solid rgba(212,175,55,0.25)",borderRadius:0,padding:"4px 0",color:"rgba(255,232,160,0.85)",fontFamily:"'Source Sans 3',sans-serif",fontSize:11,fontStyle:"italic",outline:"none",resize:"none",boxSizing:"border-box",marginTop:3,lineHeight:1.45}}
         autoFocus
       />
     );
   }
-  // Full mode (prompt overlay)
+  // Full mode — iMessage-style, no border box, no Save button
   return (
-    <div>
-      <textarea ref={inputRef} value={draft} onChange={e=>setDraft(e.target.value)}
-        onBlur={commit}
-        onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();commit();}}}
-        placeholder={placeholder||"What stood out to you..."}
-        rows={2}
-        autoFocus
-        style={{width:"100%",background:"rgba(212,175,55,0.08)",border:"1px solid rgba(212,175,55,0.4)",borderRadius:9,padding:"9px 11px",color:"rgba(255,240,180,0.9)",fontFamily:"'Source Sans 3',sans-serif",fontSize:12,fontStyle:"italic",outline:"none",resize:"none",boxSizing:"border-box",lineHeight:1.5}}
-      />
-      <div style={{display:"flex",justifyContent:"flex-end",marginTop:6}}>
-        <button onClick={commit} style={{background:"rgba(212,175,55,0.2)",border:"1px solid rgba(212,175,55,0.45)",borderRadius:8,padding:"5px 14px",cursor:"pointer",fontFamily:"'Source Sans 3',sans-serif",fontSize:10,color:"#D4AF37",fontWeight:700}}>Save</button>
-      </div>
-    </div>
+    <textarea ref={inputRef} value={draft} onChange={e=>setDraft(e.target.value)}
+      onBlur={commit}
+      onFocus={e=>{setTimeout(()=>e.target.scrollIntoView({behavior:"smooth",block:"center"}),300);}}
+      onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();commit();}}}
+      placeholder={placeholder||"What stood out to you..."}
+      rows={2}
+      autoFocus
+      style={{width:"100%",background:"transparent",border:"none",borderBottom:"1px solid rgba(212,175,55,0.3)",borderRadius:0,padding:"6px 0",color:"rgba(255,232,160,0.9)",fontFamily:"'Source Sans 3',sans-serif",fontSize:12,fontStyle:"italic",outline:"none",resize:"none",boxSizing:"border-box",lineHeight:1.5}}
+    />
   );
 }
 
@@ -1031,7 +1026,7 @@ function CollegeCard({ school, flipped, onFlip, triageStatus, onSkip, onMaybe, o
               const pct=el.scrollTop/(el.scrollHeight-el.clientHeight||1);
               thumb.style.height=thumbH+'px';
               thumb.style.top=Math.round(pct*(trackH-thumbH))+'px';
-            }} ref={backScrollRef} style={{flex:1,overflowY:"scroll",overflowX:"hidden",padding:"2px 4px 2px 8px"}}>
+            }} style={{flex:1,overflowY:"scroll",overflowX:"hidden",padding:"2px 4px 2px 8px"}}>
             {school.stats.map((s,i) => {
               const h = hovStat===i;
               return (
@@ -2090,13 +2085,14 @@ function CollegeCards() {
             const ws = SCHOOLS.find(s=>s.id===whyPrompt);
             if(!ws) return null;
             return (
-              <div style={{width:Math.round(340*cardScale),marginTop:10,background:"linear-gradient(135deg,rgba(40,32,10,0.97),rgba(28,22,8,0.97))",border:"1px solid rgba(212,175,55,0.35)",borderRadius:16,padding:"14px 16px",boxShadow:"0 8px 32px rgba(0,0,0,0.5)"}}>
-                <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
-                  <span style={{fontSize:18}}>{ws.mascot}</span>
-                  <div style={{fontFamily:"'Playfair Display',serif",fontWeight:700,fontSize:13,color:"rgba(255,255,255,0.9)"}}>{ws.name}</div>
-                  <button onClick={()=>setWhyPrompt(null)} style={{marginLeft:"auto",background:"none",border:"none",cursor:"pointer",color:"rgba(255,255,255,0.3)",fontSize:16,lineHeight:1,padding:"0 2px"}}>✕</button>
+              <div style={{width:Math.round(340*cardScale),marginTop:8,padding:"10px 14px 12px",background:"rgba(30,22,5,0.6)",borderTop:"1px solid rgba(212,175,55,0.18)"}}>
+                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:6}}>
+                  <div style={{display:"flex",alignItems:"center",gap:6}}>
+                    <span style={{fontSize:15}}>{ws.mascot}</span>
+                    <span style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:10,color:"rgba(212,175,55,0.6)",letterSpacing:"0.04em"}}>Why this one?</span>
+                  </div>
+                  <button onClick={()=>setWhyPrompt(null)} style={{background:"none",border:"none",cursor:"pointer",color:"rgba(255,255,255,0.25)",fontSize:14,lineHeight:1,padding:"2px 4px"}}>✕</button>
                 </div>
-                <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:11,color:"rgba(212,175,55,0.75)",marginBottom:8,letterSpacing:"0.04em"}}>Why this one?</div>
                 <WhyNoteInput
                   value={notes[whyPrompt]||""}
                   onChange={v=>setNotes(n=>({...n,[whyPrompt]:v}))}
