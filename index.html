@@ -727,23 +727,7 @@ function WhyNoteInput({ value, onChange, onDone, placeholder, compact }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(value);
   const inputRef = useRef(null);
-  const wrapRef = useRef(null);
   useEffect(() => { setDraft(value); }, [value]);
-
-  // Mobile keyboard fix: use visualViewport to scroll element into view
-  useEffect(() => {
-    if(!editing) return;
-    const scrollUp = () => {
-      if(!wrapRef.current) return;
-      setTimeout(() => {
-        wrapRef.current?.scrollIntoView({behavior:"smooth", block:"nearest"});
-      }, 100);
-    };
-    if(window.visualViewport) {
-      window.visualViewport.addEventListener("resize", scrollUp);
-      return () => window.visualViewport.removeEventListener("resize", scrollUp);
-    }
-  }, [editing]);
 
   const commit = () => {
     onChange(draft.trim());
@@ -2112,28 +2096,7 @@ function CollegeCards() {
             <button onClick={next} style={{position:"absolute",right:-14,top:240,zIndex:10,background:"rgba(0,0,0,0.6)",border:"1px solid rgba(255,255,255,0.18)",borderRadius:"50%",width:30,height:30,cursor:"pointer",color:"#fff",fontSize:18,display:"flex",alignItems:"center",justifyContent:"center"}}>›</button>
           </div>
 
-          {/* Why this one? prompt */}
-          {whyPrompt && (() => {
-            const ws = SCHOOLS.find(s=>s.id===whyPrompt);
-            if(!ws) return null;
-            return (
-              <div style={{width:Math.round(340*cardScale),marginTop:8,padding:"10px 14px 12px",background:"rgba(30,22,5,0.6)",borderTop:"1px solid rgba(212,175,55,0.18)"}}>
-                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:6}}>
-                  <div style={{display:"flex",alignItems:"center",gap:6}}>
-                    <span style={{fontSize:15}}>{ws.mascot}</span>
-                    <span style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:10,color:"rgba(212,175,55,0.6)",letterSpacing:"0.04em"}}>Why this one?</span>
-                  </div>
-                  <button onClick={()=>setWhyPrompt(null)} style={{background:"none",border:"none",cursor:"pointer",color:"rgba(255,255,255,0.25)",fontSize:14,lineHeight:1,padding:"2px 4px"}}>✕</button>
-                </div>
-                <WhyNoteInput
-                  value={notes[whyPrompt]||""}
-                  onChange={v=>setNotes(n=>({...n,[whyPrompt]:v}))}
-                  onDone={()=>setWhyPrompt(null)}
-                  placeholder="What stood out to you..."
-                />
-              </div>
-            );
-          })()}
+
 
           {cur?.t==="ad" && <div style={{marginTop:8,fontFamily:"'Source Sans 3',sans-serif",fontSize:8,color:"rgba(255,255,255,0.18)",letterSpacing:"0.1em"}}>SPONSORED CONTENT</div>}
 
@@ -2183,6 +2146,38 @@ function CollegeCards() {
         </div>
         <button onClick={()=>setShowFeedback(true)} style={{background:"transparent",border:"none",cursor:"pointer",fontFamily:"'Source Sans 3',sans-serif",fontSize:9,color:"rgba(212,175,55,0.45)",letterSpacing:"0.06em"}}>💬 Feedback</button>
       </div>
+    </div>
+
+      {/* Why this one? — fixed overlay above keyboard */}
+      {whyPrompt && (() => {
+        const ws = SCHOOLS.find(s=>s.id===whyPrompt);
+        if(!ws) return null;
+        return (
+          <div style={{
+            position:"fixed",bottom:0,left:"50%",transform:"translateX(-50%)",
+            width:"100%",maxWidth:430,
+            background:"linear-gradient(180deg,rgba(18,12,2,0.97),rgba(12,8,0,0.99))",
+            borderTop:"1px solid rgba(212,175,55,0.25)",
+            padding:"10px 16px 20px",
+            zIndex:999,
+            boxShadow:"0 -4px 24px rgba(0,0,0,0.6)",
+          }}>
+            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
+              <div style={{display:"flex",alignItems:"center",gap:7}}>
+                <span style={{fontSize:16}}>{ws.mascot}</span>
+                <span style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:11,color:"rgba(212,175,55,0.65)",letterSpacing:"0.03em"}}>{ws.name}</span>
+              </div>
+              <button onClick={()=>setWhyPrompt(null)} style={{background:"none",border:"none",cursor:"pointer",color:"rgba(255,255,255,0.3)",fontSize:16,lineHeight:1,padding:"2px 6px"}}>✕</button>
+            </div>
+            <WhyNoteInput
+              value={notes[whyPrompt]||""}
+              onChange={v=>setNotes(n=>({...n,[whyPrompt]:v}))}
+              onDone={()=>setWhyPrompt(null)}
+              placeholder="What stood out to you..."
+            />
+          </div>
+        );
+      })()}
     </div>
     </div>
   );
