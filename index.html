@@ -727,8 +727,6 @@ function CollegeCard({ school, flipped, onFlip, triageStatus, onSkip, onMaybe, o
   const [hovStat, setHovStat] = useState(null);
   const [shareMsg, setShareMsg] = useState("");
   const touchMoved = useRef(false);
-  const btnsRef = useRef(null);
-  const btnPressed = useRef(false);
   const { accentColor, gradFrom, gradTo, borderColor, primaryColor } = school;
 
   useEffect(() => { setPhotoIdx(0); }, [school.id]);
@@ -742,8 +740,6 @@ function CollegeCard({ school, flipped, onFlip, triageStatus, onSkip, onMaybe, o
 
   const handleCardClick = e => {
     if(touchMoved.current) return;
-    // Never flip if click is inside the buttons zone
-    if(btnsRef.current && btnsRef.current.contains(e.target)) return;
     if(e.target.closest('a,button,select,input,svg,polyline,line,path')) return;
     onFlip(!flipped);
   };
@@ -817,55 +813,56 @@ function CollegeCard({ school, flipped, onFlip, triageStatus, onSkip, onMaybe, o
   return (
     <div className="card-scene"
       onTouchStart={()=>{touchMoved.current=false;}}
-      onTouchMove={()=>{touchMoved.current=true;}}>
+      onTouchMove={()=>{touchMoved.current=true;}}
+      onClick={handleCardClick}>
       <div className={"card-inner" + (flipped ? " flipped" : "")}>
-        {/* FRONT — v2 */}
+        {/* FRONT — v2 card design */}
         <div className="card-face" style={{
+          background: gradTo,
           border: "2px solid " + borderColor,
           boxShadow: "0 22px 70px rgba(0,0,0,0.62)",
-          background: gradTo,
-          isolation: "isolate",
+          overflow: "hidden",
         }}>
+          {/* Hero image fills full card */}
+          <div className={"scene-wrap"+(fading?" fading":"")} style={{position:"absolute",inset:0,transform:"scale(1.04)",transformOrigin:"50% 20%"}}><Scene/></div>
 
-          {/* ── HERO: top 0 → 220px ── */}
-          <div style={{position:"absolute",top:0,left:0,right:0,height:220,overflow:"hidden"}}>
-            <div className={"scene-wrap"+(fading?" fading":"")} style={{position:"absolute",inset:0,transform:"scale(1.06)",transformOrigin:"50% 17%"}}><Scene/></div>
-            {/* Rank badge */}
-            <div style={{position:"absolute",top:10,left:10,zIndex:3,background:"linear-gradient(180deg,#e4bd47,#cfa533)",color:"#2f230d",borderRadius:9,padding:"5px 10px 4px",lineHeight:1,boxShadow:"0 3px 10px rgba(0,0,0,0.28)"}}>
-              <div style={{fontFamily:"'Source Sans 3',sans-serif",fontWeight:800,fontSize:16,letterSpacing:"-0.01em"}}>{school.ranking}</div>
-              <div style={{fontFamily:"'Source Sans 3',sans-serif",fontWeight:700,fontSize:7,letterSpacing:"0.07em",textTransform:"uppercase",opacity:0.75,marginTop:2}}>{school.rankLabel}</div>
-            </div>
-            {/* Dots */}
-            <div style={{position:"absolute",top:13,right:10,display:"flex",gap:5,zIndex:3}}>
-              {school.scenes.map((_,i)=>(
-                <div key={i} onClick={e=>{e.stopPropagation();setPhotoIdx(i);}} style={{width:7,height:7,borderRadius:"50%",background:i===photoIdx?"#e2bb47":"rgba(255,255,255,0.3)",cursor:"pointer"}}/>
-              ))}
-            </div>
-            {/* Gradient */}
-            <div style={{position:"absolute",inset:0,pointerEvents:"none",background:
-              "linear-gradient(180deg,rgba(0,0,0,0) 0%,"+
-              hexToRgba(primaryColor,0.08)+" 30%,"+
-              hexToRgba(primaryColor,0.6)+" 58%,"+
-              gradTo+" 100%)"
-            }}/>
-            {/* Name at bottom of hero */}
-            <div style={{position:"absolute",bottom:8,left:13,right:13,zIndex:3,pointerEvents:"none"}}>
-              <div style={{fontFamily:"'Playfair Display',Georgia,serif",fontWeight:700,fontSize:28,lineHeight:1.0,color:"#FFF7ED",letterSpacing:"-0.01em",textShadow:"0 2px 12px rgba(0,0,0,0.6)"}}>{school.name}</div>
-            </div>
+          {/* Gradient: clear top → solid school color at 55% → solid dark bottom */}
+          <div style={{position:"absolute",inset:0,pointerEvents:"none",background:
+            "linear-gradient(180deg,rgba(0,0,0,0) 0%,rgba(0,0,0,0) 25%,"+
+            hexToRgba(primaryColor,0.5)+" 42%,"+
+            hexToRgba(primaryColor,0.92)+" 56%,"+
+            gradTo+" 68%)"
+          }}/>
+
+          {/* Rank badge - top left */}
+          <div style={{position:"absolute",top:10,left:10,zIndex:4,background:"linear-gradient(180deg,#e4bd47,#cfa533)",color:"#2f230d",borderRadius:9,padding:"5px 10px 4px",lineHeight:1,boxShadow:"0 3px 10px rgba(0,0,0,0.28)"}}>
+            <div style={{fontFamily:"'Source Sans 3',sans-serif",fontWeight:800,fontSize:16,letterSpacing:"-0.01em"}}>{school.ranking}</div>
+            <div style={{fontFamily:"'Source Sans 3',sans-serif",fontWeight:700,fontSize:7,letterSpacing:"0.07em",textTransform:"uppercase",opacity:0.75,marginTop:2}}>{school.rankLabel}</div>
+          </div>
+          {/* Dots - top right */}
+          <div style={{position:"absolute",top:14,right:10,display:"flex",gap:5,zIndex:4}}>
+            {school.scenes.map((_,i)=>(
+              <div key={i} onClick={e=>{e.stopPropagation();setPhotoIdx(i);}} style={{width:7,height:7,borderRadius:"50%",background:i===photoIdx?"#e2bb47":"rgba(255,255,255,0.3)",cursor:"pointer"}}/>
+            ))}
           </div>
 
-          {/* ── BODY: 220px → 62px from bottom = 248px tall ── */}
-          <div onClick={()=>onFlip(!flipped)} style={{
-            position:"absolute",top:220,left:0,right:0,bottom:62,
-            overflow:"hidden",cursor:"pointer",background:gradTo,
-            padding:"7px 13px 0"
-          }}>
-            <div style={{fontFamily:"'Source Sans 3',sans-serif",fontWeight:600,fontSize:10,letterSpacing:"0.09em",textTransform:"uppercase",color:"#F3D06A",marginBottom:6,display:"flex",alignItems:"center",gap:5}}>
+          {/* Flip zone - top 65% of card, invisible, handles card flip */}
+          <div onClick={()=>onFlip(!flipped)} style={{position:"absolute",top:0,left:0,right:0,bottom:225,zIndex:3,cursor:"pointer"}}/>
+
+          {/* Content - bottom 295px, pointer-events none except buttons */}
+          <div style={{position:"absolute",bottom:0,left:0,right:0,height:295,padding:"0 13px",pointerEvents:"none"}}>
+            {/* Name */}
+            <div style={{fontFamily:"'Playfair Display',Georgia,serif",fontWeight:700,fontSize:28,lineHeight:1.0,color:"#FFF7ED",letterSpacing:"-0.01em",textShadow:"0 2px 12px rgba(0,0,0,0.6)",marginBottom:3}}>{school.name}</div>
+            {/* Subtitle */}
+            <div style={{fontFamily:"'Source Sans 3',sans-serif",fontWeight:600,fontSize:10,letterSpacing:"0.09em",textTransform:"uppercase",color:"#F3D06A",marginBottom:8,display:"flex",alignItems:"center",gap:5}}>
               <span>{school.mascot}</span>{school.subtitle}
             </div>
+            {/* Claim label */}
             <div style={{fontFamily:"'Source Sans 3',sans-serif",fontWeight:700,fontSize:8,letterSpacing:"0.16em",textTransform:"uppercase",color:"#F1CF62",marginBottom:3}}>Claim to Fame</div>
-            <div style={{fontFamily:"'Playfair Display',Georgia,serif",fontWeight:600,fontSize:13,lineHeight:1.15,color:"#FFF4E8",marginBottom:8}}>{school.claim}</div>
-            <div style={{display:"grid",gap:6}}>
+            {/* Claim text */}
+            <div style={{fontFamily:"'Playfair Display',Georgia,serif",fontWeight:600,fontSize:13,lineHeight:1.15,color:"#FFF4E8",marginBottom:9}}>{school.claim}</div>
+            {/* Vibes */}
+            <div style={{display:"grid",gap:6,marginBottom:10}}>
               {school.vibes.map(v=>(
                 <div key={v.label} style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
                   <div style={{fontFamily:"'Source Sans 3',sans-serif",fontWeight:600,fontSize:11,color:"rgba(255,243,230,0.92)",display:"flex",alignItems:"center",gap:5,whiteSpace:"nowrap"}}>
@@ -881,14 +878,8 @@ function CollegeCard({ school, flipped, onFlip, triageStatus, onSkip, onMaybe, o
                 </div>
               ))}
             </div>
-          </div>
-
-          {/* ── BUTTONS: bottom 0 → 62px ── */}
-          <div style={{
-            position:"absolute",bottom:0,left:0,right:0,height:62,
-            display:"flex",alignItems:"center",padding:"0 13px",background:gradTo
-          }}>
-            <div style={{display:"grid",gridTemplateColumns:"50px 1fr 1.2fr",gap:8,width:"100%"}}>
+            {/* Buttons - pointer-events auto */}
+            <div style={{display:"grid",gridTemplateColumns:"50px 1fr 1.2fr",gap:8,pointerEvents:"auto"}}>
               {triageStatus==="interested" ? (
                 <button onClick={()=>onRemove()} style={{gridColumn:"1/-1",height:48,borderRadius:13,background:"linear-gradient(135deg,#f4dd85,#d1a834)",border:"none",color:"#241805",fontFamily:"'Source Sans 3',sans-serif",fontSize:12,fontWeight:700,cursor:"pointer"}}>
                   ❤️ Interested · Remove
@@ -924,12 +915,11 @@ function CollegeCard({ school, flipped, onFlip, triageStatus, onSkip, onMaybe, o
               </>)}
             </div>
           </div>
-
         </div>
-                {/* BACK */}
+        {/* BACK */}
         <div className="card-face card-back-face"
           onClick={e=>{if(!e.target.closest('a,button')) onFlip(false);}}
-          style={{background:"linear-gradient(160deg,#0f0f0f 0%,#1a1408 60%,#0d0d0d 100%)",border:"2px solid "+(borderColor),display:"flex",flexDirection:"column",overflow:"hidden",cursor:"pointer"}}>
+          style={{background:"linear-gradient(160deg,#0f0f0f 0%,#1a1408 60%,#0d0d0d 100%)",border:"2px solid "+(borderColor),display:"flex",flexDirection:"column",overflow:"hidden"}}>
           <div className="shine"/>
           <div style={{position:"absolute",inset:6,border:"1px solid "+(accentColor)+"28",borderRadius:13,pointerEvents:"none",zIndex:0}}/>
           <div style={{flexShrink:0,padding:"10px 14px 8px",borderBottom:"1px solid "+(accentColor)+"28",display:"flex",alignItems:"center",gap:8}}>
@@ -1661,7 +1651,6 @@ function CollegeCards() {
 
   const allBoardIds = [...board.reach,...board.match,...board.safety,...board.undecided];
 
-  // Keep all schools in sequence — skipped ones show with red state
   const visibleSeq = SEQ;
 
   const cur = visibleSeq[seqIdx % visibleSeq.length];
@@ -1713,31 +1702,23 @@ function CollegeCards() {
     setTriage(t=>({...t,maybe:t.maybe.filter(x=>x!==id),skipped:t.skipped.filter(x=>x!==id)}));
     sessionTriaged.current++;
     track("school_triaged", { school_id: id, action: "interested", board_size: allBoardIds.length+1, session_views: sessionViews.current, pct_triaged: sessionViews.current > 0 ? Math.round((sessionTriaged.current/sessionViews.current)*100) : 0 });
-    setCardFlipped(false);
+    setCardFlipped(false); next();
   };
   const markMaybe = id => {
-    if(triage.maybe.includes(id)) {
-      // un-maybe
-      setTriage(t=>({...t,maybe:t.maybe.filter(x=>x!==id)}));
-      track("school_triaged", { school_id: id, action: "unmaybe", session_views: sessionViews.current });
-    } else {
-      setTriage(t=>({...t,maybe:[...t.maybe,id],skipped:t.skipped.filter(x=>x!==id)}));
-      sessionTriaged.current++;
-      track("school_triaged", { school_id: id, action: "maybe", session_views: sessionViews.current });
-      setCardFlipped(false);
-    }
+    if(!triage.maybe.includes(id)) setTriage(t=>({...t,maybe:[...t.maybe,id],skipped:t.skipped.filter(x=>x!==id)}));
+    sessionTriaged.current++;
+    track("school_triaged", { school_id: id, action: "maybe", session_views: sessionViews.current });
+    setCardFlipped(false); next();
   };
   const markSkip = id => {
     if(triage.skipped.includes(id)) {
-      // unskip
       setTriage(t=>({...t,skipped:t.skipped.filter(x=>x!==id)}));
-      track("school_triaged", { school_id: id, action: "unskip", session_views: sessionViews.current });
     } else {
       setTriage(t=>({...t,skipped:[...t.skipped,id],maybe:t.maybe.filter(x=>x!==id)}));
       sessionTriaged.current++;
-      track("school_triaged", { school_id: id, action: "skip", session_views: sessionViews.current });
       setCardFlipped(false);
     }
+    track("school_triaged", { school_id: id, action: "skip", session_views: sessionViews.current });
   };
   const unSkipAll = () => setTriage(t=>({...t,skipped:[]}));
   const unSkip = id => setTriage(t=>({...t,skipped:t.skipped.filter(x=>x!==id)}));
@@ -1775,17 +1756,13 @@ function CollegeCards() {
   const totalBoard = allBoardIds.length;
   const totalMy = allBoardIds.length; // same — My Colleges IS the board list
 
-  const handleTouchStart = e => {
-    touchStart.current = e.touches[0].clientX;
-    touchStartY.current = e.touches[0].clientY;
-  };
+  const handleTouchStart = e => { touchStart.current = e.touches[0].clientX; touchStartY.current = e.touches[0].clientY; };
   const handleTouchEnd = e => {
     if(touchStart.current===null) return;
     const dx = e.changedTouches[0].clientX - touchStart.current;
-    const dy = e.changedTouches[0].clientY - (touchStartY.current||0);
     touchStart.current = null;
-    // Only swipe if horizontal movement is dominant and large enough
-    if(Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy)*1.5) return;
+    const dy = e.changedTouches[0].clientY - (touchStartY.current||0);
+    if(Math.abs(dx)<60 || Math.abs(dx)<Math.abs(dy)*1.5) return;
     if(dx<0) next(); else prev();
   };
 
@@ -1805,9 +1782,7 @@ function CollegeCards() {
     '',
     '    @import url(\'https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Source+Sans+3:wght@300;400;600&display=swap\');',
     '    body{overscroll-behavior:none;overflow-x:hidden;}',
-    '    .card-scene{width:min(380px,96vw);height:530px;perspective:1200px;cursor:pointer;touch-action:pan-y;}',
-    '    @media(max-height:700px){.card-scene{height:480px;}}',
-    '    @media(min-height:700px) and (max-width:500px){.card-scene{height:calc(100svh - 220px);width:min(380px,94vw);}}',
+    '    .card-scene{width:340px;height:530px;perspective:1200px;cursor:pointer;touch-action:pan-y;}',
     '    .card-inner{width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform 0.75s cubic-bezier(0.4,0.2,0.2,1);}',
     '    .card-inner.flipped{transform:rotateY(180deg);}',
     '    .card-face{position:absolute;inset:0;border-radius:18px;backface-visibility:hidden;-webkit-backface-visibility:hidden;overflow:hidden;}',
@@ -1819,7 +1794,7 @@ function CollegeCards() {
     '    .shine{position:absolute;inset:0;background:linear-gradient(135deg,transparent 40%,rgba(255,255,255,0.06) 50%,transparent 60%);pointer-events:none;z-index:2;}',
     '    .dot{width:6px;height:6px;border-radius:50%;transition:background 0.3s;cursor:pointer;}',
     '    .btn-skip,.btn-maybe,.btn-int{transition:all 0.15s;}',
-    '    @media(hover:hover){.btn-skip:hover{border-color:rgba(255,80,80,0.7);background:rgba(180,30,30,0.25);} .btn-maybe:hover{border-color:rgba(233,196,88,0.75);background:rgba(38,27,26,0.6);} .btn-int:hover{opacity:0.88;}}',
+    '    @media(hover:hover){.btn-skip:hover{border-color:rgba(255,80,80,0.7);background:rgba(80,15,20,0.8)!important;}.btn-maybe:hover{border-color:rgba(233,196,88,0.75);}.btn-int:hover{opacity:0.9;}}',
     '    .stab{cursor:pointer;transition:all 0.18s;border-radius:7px;padding:4px 8px;font-family:\'Source Sans 3\',sans-serif;font-size:9px;letter-spacing:0.06em;text-transform:uppercase;border:1px solid transparent;white-space:nowrap;}',
     '    .stab:hover{opacity:0.88;}',
     '    .tab-btn{background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0;flex:1;position:relative;}',
