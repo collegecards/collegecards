@@ -826,25 +826,21 @@ function CollegeCard({ school, flipped, onFlip, triageStatus, onSkip, onMaybe, o
           WebkitTransform: "translateZ(0)",
           transform: "translateZ(0)",
         }}>
-          {/* Hero image/scene */}
-          <div style={{position:"absolute",top:0,left:0,right:0,
-            height: school.scenes[photoIdx].isPhoto ? 370 : 235,
-            overflow:"hidden"
-          }}>
-            <div className={"scene-wrap"+(fading?" fading":"")} style={{position:"absolute",inset:0}}><Scene/></div>
+          {/* Hero — 370px for both photos and SVGs */}
+          <div style={{position:"absolute",top:0,left:0,right:0,height:370,overflow:"hidden"}}>
+            <div className={"scene-wrap"+(fading?" fading":"")} style={{
+              position:"absolute",inset:0,
+              transform: school.scenes[photoIdx].isPhoto ? "none" : "scale(1.69)",
+              transformOrigin: "top center"
+            }}><Scene/></div>
           </div>
 
-          {/* Gradient — stronger for photos so name is readable */}
+          {/* Gradient — same for both */}
           <div style={{position:"absolute",inset:0,pointerEvents:"none",background:
-            school.scenes[photoIdx].isPhoto
-              ? "linear-gradient(180deg,rgba(0,0,0,0) 0%,rgba(0,0,0,0) 28%,"+
-                hexToRgba(primaryColor,0.3)+" 42%,"+
-                hexToRgba(primaryColor,0.82)+" 55%,"+
-                gradTo+" 68%)"
-              : "linear-gradient(180deg,rgba(0,0,0,0) 0%,rgba(0,0,0,0) 30%,"+
-                hexToRgba(primaryColor,0.4)+" 42%,"+
-                hexToRgba(primaryColor,0.88)+" 52%,"+
-                gradTo+" 64%)"
+            "linear-gradient(180deg,rgba(0,0,0,0) 0%,rgba(0,0,0,0) 28%,"+
+            hexToRgba(primaryColor,0.3)+" 42%,"+
+            hexToRgba(primaryColor,0.82)+" 55%,"+
+            gradTo+" 68%)"
           }}/>
 
           {/* Rank badge */}
