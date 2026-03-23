@@ -1708,6 +1708,18 @@ function CollegeCards() {
   const [board, setBoard] = useState(() => load("cc_board", {reach:[],match:[],safety:[],undecided:[],rankOrder:[]}));
   const [notes, setNotes] = useState(() => load("cc_notes", {}));
   const [whyPrompt, setWhyPrompt] = useState(null);
+  const [kbOffset, setKbOffset] = useState(0);
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if(!vv) return;
+    const update = () => {
+      const offset = window.innerHeight - vv.height - vv.offsetTop;
+      setKbOffset(Math.max(0, offset));
+    };
+    vv.addEventListener('resize', update);
+    vv.addEventListener('scroll', update);
+    return () => { vv.removeEventListener('resize', update); vv.removeEventListener('scroll', update); };
+  }, []);
   const [triage, setTriage] = useState(() => load("cc_triage", {maybe:[], skipped:[]}));
   const [myStatus, setMyStatus] = useState(() => load("cc_mystatus", {applying:[], applied:[]}));
 
@@ -2075,7 +2087,7 @@ function CollegeCards() {
       {whyPrompt && (()=>{
         const ws=SCHOOLS.find(s=>s.id===whyPrompt);
         if(!ws) return null;
-        return (<div style={{position:"fixed",bottom:0,left:"50%",transform:"translateX(-50%)",width:"100%",maxWidth:430,background:"linear-gradient(180deg,rgba(18,12,2,0.97),rgba(12,8,0,0.99))",borderTop:"1px solid rgba(212,175,55,0.25)",padding:"10px 16px 20px",zIndex:999,boxShadow:"0 -4px 24px rgba(0,0,0,0.6)"}}><div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}><div style={{display:"flex",alignItems:"center",gap:7}}><span style={{fontSize:16}}>{ws.mascot}</span><span style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:11,color:"rgba(212,175,55,0.65)"}}>{ws.name}</span></div><button onClick={()=>setWhyPrompt(null)} style={{background:"none",border:"none",cursor:"pointer",color:"rgba(255,255,255,0.3)",fontSize:16,lineHeight:1,padding:"2px 6px"}}>✕</button></div><WhyNoteInput value={notes[whyPrompt]||""} onChange={v=>setNotes(n=>({...n,[whyPrompt]:v}))} onDone={()=>setWhyPrompt(null)} placeholder="What stood out to you..."/></div>);
+        return (<div style={{position:"fixed",bottom:kbOffset,left:"50%",transform:"translateX(-50%)",width:"100%",maxWidth:430,background:"linear-gradient(180deg,rgba(18,12,2,0.97),rgba(12,8,0,0.99))",borderTop:"1px solid rgba(212,175,55,0.25)",padding:"10px 16px 20px",zIndex:999,boxShadow:"0 -4px 24px rgba(0,0,0,0.6)"}}><div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}><div style={{display:"flex",alignItems:"center",gap:7}}><span style={{fontSize:16}}>{ws.mascot}</span><span style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:11,color:"rgba(212,175,55,0.65)"}}>{ws.name}</span></div><button onClick={()=>setWhyPrompt(null)} style={{background:"none",border:"none",cursor:"pointer",color:"rgba(255,255,255,0.3)",fontSize:16,lineHeight:1,padding:"2px 6px"}}>✕</button></div><WhyNoteInput value={notes[whyPrompt]||""} onChange={v=>setNotes(n=>({...n,[whyPrompt]:v}))} onDone={()=>setWhyPrompt(null)} placeholder="What stood out to you..."/></div>);
       })()}
     </div>
     </div>
