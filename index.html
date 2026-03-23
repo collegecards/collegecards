@@ -1708,10 +1708,15 @@ function CollegeCards() {
     setCardFlipped(false);
   };
   const markMaybe = id => {
-    if(!triage.maybe.includes(id)) setTriage(t=>({...t,maybe:[...t.maybe,id],skipped:t.skipped.filter(x=>x!==id)}));
-    sessionTriaged.current++;
-    track("school_triaged", { school_id: id, action: "maybe", session_views: sessionViews.current });
-    setCardFlipped(false);
+    if(triage.maybe.includes(id)) {
+      setTriage(t=>({...t,maybe:t.maybe.filter(x=>x!==id)}));
+      track("school_triaged", { school_id: id, action: "unmaybe", session_views: sessionViews.current });
+    } else {
+      setTriage(t=>({...t,maybe:[...t.maybe,id],skipped:t.skipped.filter(x=>x!==id)}));
+      sessionTriaged.current++;
+      track("school_triaged", { school_id: id, action: "maybe", session_views: sessionViews.current });
+      setCardFlipped(false);
+    }
   };
   const markSkip = id => {
     if(triage.skipped.includes(id)) {
