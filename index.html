@@ -1010,7 +1010,7 @@ function WelcomeCard({ onDismiss }) {
 
 // ─── SEARCH CARD ───────────────────────────────────────────────────────────
 function SearchCard({ onResult, onSurprise, onJumpIn }) {
-  const [f, setF] = useState({region:"",state:"",setting:"",size:"",testOpt:false,d1:false,ivyPlus:false,spirit:0,acad:0,social:0,beauty:0,maxAccept:100});
+  const [f, setF] = useState({region:"",state:"",states:[],setting:"",size:"",testOpt:false,d1:false,ivyPlus:false,spirit:0,acad:0,social:0,beauty:0,maxAccept:100});
   const [committed, setCommitted] = useState(100);
   const [nameQ, setNameQ] = useState("");
   const regions = {Northeast:["MA","NH","VT","CT","RI","NY","NJ","PA","ME"],South:["TN","NC","VA","GA","FL"],Midwest:["OH","IN","IL","MI","WI"],West:["CA","CO","WA","OR"]};
@@ -1018,7 +1018,7 @@ function SearchCard({ onResult, onSurprise, onJumpIn }) {
   const d1Ids = ["bc","cornell","columbia","yale","harvard","dartmouth","brown","princeton","vanderbilt","duke","bu","tufts","lehigh","bucknell","colgate","oberlin"];
   const getRegion = loc => { for(const [r,st] of Object.entries(regions)) if(st.some(s=>loc.includes(s))) return r; return "Other"; };
   const sizeOk = (v,enroll) => { const n=parseInt((enroll||"").replace(/[^0-9]/g,"")); if(v==="Small")return n<3000; if(v==="Medium")return n>=3000&&n<=10000; if(v==="Large")return n>10000; return true; };
-  const CLEAR = {region:"",state:"",setting:"",size:"",testOpt:false,d1:false,ivyPlus:false,spirit:0,acad:0,social:0,beauty:0,maxAccept:100};
+  const CLEAR = {region:"",state:"",states:[],setting:"",size:"",testOpt:false,d1:false,ivyPlus:false,spirit:0,acad:0,social:0,beauty:0,maxAccept:100};
   const matches = SCHOOLS.filter(s => {
     const loc = s.stats.find(x=>x.label==="Location")?.value||"";
     const set = s.stats.find(x=>x.label==="Campus Setting")?.value||"";
@@ -1026,7 +1026,7 @@ function SearchCard({ onResult, onSurprise, onJumpIn }) {
     const to  = s.stats.find(x=>x.label==="Test Optional?")?.value||"";
     const acc = parseInt((s.stats.find(x=>x.label==="Acceptance Rate")?.value||"100").replace(/[^0-9]/g,""));
     if(f.region && getRegion(loc)!==f.region) return false;
-    if(f.state && !loc.includes(", "+f.state) && !loc.includes(","+f.state)) return false;
+    if(f.states&&f.states.length>0 && !f.states.some(st=>loc.includes(", "+st)||loc.includes(","+st))) return false;
     if(f.setting && !set.toLowerCase().includes(f.setting.toLowerCase())) return false;
     if(f.size && !sizeOk(f.size,enr)) return false;
     if(f.testOpt && !to.includes(Yes)) return false;
@@ -1089,16 +1089,16 @@ function SearchCard({ onResult, onSurprise, onJumpIn }) {
               </button>
             </div>
           </div>
-          <div className="search-scroll" style={{flex:1,overflowY:"scroll",overflowX:"hidden",scrollbarGutter:"stable",padding:"8px 14px",display:"flex",flexDirection:"column",gap:10,scrollbarWidth:"thin",scrollbarColor:"rgba(212,175,55,0.5) rgba(255,255,255,0.05)"}}>
+          <div style={{flex:1,minHeight:0,position:"relative"}}><div className="search-scroll" style={{position:"absolute",inset:0,overflowY:"scroll",overflowX:"hidden",padding:"8px 14px",display:"flex",flexDirection:"column",gap:10}}>
             <div>
               <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:11,color:"rgba(255,255,255,0.65)",fontWeight:600,marginBottom:6}}>State</div>
-              <select value={f.state} onChange={e=>setF(x=>({...x,state:e.target.value,region:""}))}
-                style={{width:"100%",background:"#0a0c14",border:"1px solid "+(f.state?"rgba(212,175,55,0.6)":"rgba(255,255,255,0.14)"),borderRadius:8,padding:"7px 10px",color:f.state?"#D4AF37":"rgba(255,255,255,0.45)",fontFamily:"'Source Sans 3',sans-serif",fontSize:11,cursor:"pointer",outline:"none"}}>
-                <option value="">All States</option>
-                {[["AL","Alabama"],["AZ","Arizona"],["CA","California"],["CO","Colorado"],["CT","Connecticut"],["DC","Washington DC"],["FL","Florida"],["GA","Georgia"],["IL","Illinois"],["IN","Indiana"],["MA","Massachusetts"],["MD","Maryland"],["ME","Maine"],["MI","Michigan"],["MN","Minnesota"],["MO","Missouri"],["NC","North Carolina"],["NH","New Hampshire"],["NJ","New Jersey"],["NY","New York"],["OH","Ohio"],["OR","Oregon"],["PA","Pennsylvania"],["RI","Rhode Island"],["SC","South Carolina"],["TN","Tennessee"],["TX","Texas"],["VA","Virginia"],["VT","Vermont"],["WA","Washington"],["WI","Wisconsin"]].map(([abbr,name])=>(
-                  <option key={abbr} value={abbr}>{name}</option>
-                ))}
-              </select>
+              <div style={{display:"flex",flexWrap:"wrap",gap:4}}>
+                {[["MA","Massachusetts"],["NY","New York"],["NJ","New Jersey"],["PA","Pennsylvania"],["CT","Connecticut"],["NH","New Hampshire"],["VT","Vermont"],["RI","Rhode Island"],["ME","Maine"],["TN","Tennessee"],["NC","North Carolina"],["VA","Virginia"],["GA","Georgia"],["FL","Florida"],["OH","Ohio"],["IL","Illinois"],["MI","Michigan"],["WI","Wisconsin"],["IN","Indiana"],["CA","California"],["CO","Colorado"],["WA","Washington"],["OR","Oregon"],["TX","Texas"],["MD","Maryland"],["DC","DC"]].map(([abbr])=>{
+                  const on=(f.states||[]).includes(abbr);
+                  return <div key={abbr} onClick={()=>setF(x=>{const cur=x.states||[];return{...x,states:on?cur.filter(s=>s!==abbr):[...cur,abbr],region:""}})} style={{padding:"3px 8px",borderRadius:10,cursor:"pointer",fontFamily:"'Source Sans 3',sans-serif",fontSize:10,fontWeight:on?700:400,background:on?"rgba(212,175,55,0.22)":"rgba(255,255,255,0.06)",border:"1px solid "+(on?"rgba(212,175,55,0.6)":"rgba(255,255,255,0.1)"),color:on?"#D4AF37":"rgba(255,255,255,0.5)",userSelect:"none"}}>{abbr}</div>;
+                })}
+              </div>
+              {(f.states&&f.states.length>0)&&<div onClick={()=>setF(x=>({...x,states:[]}))} style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:9,color:"rgba(212,175,55,0.5)",marginTop:4,cursor:"pointer",textDecoration:"underline"}}>clear</div>}
             </div>
             {[{label:"Region",key:"region",opts:["Northeast","South","Midwest","West"]},{label:"Setting",key:"setting",opts:["Urban","Suburban","Rural","Small Town"]},{label:"Size",key:"size",opts:["Small","Medium","Large"]}].map(({label,key,opts}) => (
               <div key={key}>
@@ -1134,7 +1134,7 @@ function SearchCard({ onResult, onSurprise, onJumpIn }) {
               <Dots k="social" label="🎉 Social Scene"/>
               <Dots k="beauty" label="🏛️ Campus Beauty"/>
             </div>
-          </div>
+          </div></div>
           <div style={{flexShrink:0,padding:"6px 14px 14px"}}>
             {matches.length>0 ? (
               <button onClick={()=>{
@@ -1827,11 +1827,11 @@ function CollegeCards() {
     '    .tab-btn{background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0;flex:1;position:relative;}',
     '    .tab-badge{position:absolute;top:2px;right:calc(50% - 18px);background:#e05050;border-radius:10px;min-width:16px;height:16px;display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;font-weight:700;padding:0 3px;}',
     '    ::-webkit-scrollbar{width:3px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.12);border-radius:2px;}',
-    '    .search-scroll::-webkit-scrollbar{width:6px !important;display:block !important;}',
-    '    .search-scroll::-webkit-scrollbar-track{background:rgba(255,255,255,0.05);border-radius:3px;}',
-    '    .search-scroll::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#e4bd47,#a87800);border-radius:3px;}',
-    '    .search-scroll::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg,#f0cc55,#D4AF37);}',
-    '    .search-scroll{scrollbar-width:thin;scrollbar-color:#D4AF37 rgba(255,255,255,0.05);}' ,
+    '    .search-scroll::-webkit-scrollbar{width:6px !important;min-width:6px !important;}',
+    '    .search-scroll::-webkit-scrollbar-track{background:rgba(212,175,55,0.08) !important;border-radius:4px !important;}',
+    '    .search-scroll::-webkit-scrollbar-thumb{background:linear-gradient(#e4bd47,#a07800) !important;border-radius:4px !important;min-height:30px;}',
+    '    .search-scroll{scrollbar-width:thin !important;scrollbar-color:#D4AF37 rgba(212,175,55,0.1) !important;}' ,
+
   ].join("\n");
   const NavTab = ({id, icon, label, badge}) => {
     const active = view===id;
