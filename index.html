@@ -476,7 +476,7 @@ function photoScene(url, caption) {
     caption,
     scene: () => (
       <img src={url} alt={caption}
-        style={{width:"100%",height:"100%",objectFit:"cover",objectPosition:"center top",display:"block"}}
+        style={{width:"100%",height:"100%",objectFit:"cover",objectPosition:"center 15%",display:"block"}}
         loading="lazy"
       />
     )
@@ -822,9 +822,13 @@ function CollegeCard({ school, flipped, onFlip, triageStatus, onSkip, onMaybe, o
           border: "2px solid " + borderColor,
           boxShadow: "0 22px 70px rgba(0,0,0,0.62)",
           overflow: "hidden",
+          WebkitTransform: "translateZ(0)",
+          transform: "translateZ(0)",
         }}>
-          {/* Hero fills full card */}
-          <div className={"scene-wrap"+(fading?" fading":"")} style={{position:"absolute",inset:0,transform:"scale(1.04)",transformOrigin:"50% 20%"}}><Scene/></div>
+          {/* Hero — top 55% only, prevents SVG stretching */}
+          <div style={{position:"absolute",top:0,left:0,right:0,height:"55%",overflow:"hidden"}}>
+            <div className={"scene-wrap"+(fading?" fading":"")} style={{position:"absolute",inset:0,transform:"scale(1.04)",transformOrigin:"50% 20%"}}><Scene/></div>
+          </div>
 
           {/* Gradient */}
           <div style={{position:"absolute",inset:0,pointerEvents:"none",background:
