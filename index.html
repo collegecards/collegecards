@@ -986,7 +986,7 @@ function WelcomeCard({ onDismiss }) {
           <div className="shine"/>
           <div style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"28px 22px",gap:16,textAlign:"center"}}>
             <div style={{fontFamily:"'Playfair Display',serif",fontWeight:900,fontSize:34,color:"#fff",lineHeight:1}}>
-              <span style={{color:darkMode?"#fff":"#1a1a1a"}}>College</span><span style={{color:"#D4AF37"}}>Cards</span>
+              College<span style={{color:"#D4AF37"}}>Cards</span>
             </div>
             <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:12,color:"rgba(255,255,255,0.35)",letterSpacing:"0.2em",textTransform:"uppercase"}}>Your college search, reimagined</div>
             <div style={{height:1,width:70,background:"linear-gradient(90deg,transparent,rgba(212,175,55,0.5),transparent)"}}/>
@@ -1013,37 +1013,11 @@ function SearchCard({ onResult, onSurprise, onJumpIn }) {
   const [f, setF] = useState({region:"",state:"",setting:"",size:"",testOpt:false,d1:false,ivyPlus:false,spirit:0,acad:0,social:0,beauty:0,maxAccept:100});
   const [committed, setCommitted] = useState(100);
   const [nameQ, setNameQ] = useState("");
-  const [zip, setZip] = useState("");
-  const [maxMiles, setMaxMiles] = useState(500);
-  const [zipCoords, setZipCoords] = useState(null);
-  const [zipLookupDone, setZipLookupDone] = useState(false);
-  const scrollRef = useRef(null);
-  const [canScrollDown, setCanScrollDown] = useState(true);
   const regions = {Northeast:["MA","NH","VT","CT","RI","NY","NJ","PA","ME"],South:["TN","NC","VA","GA","FL"],Midwest:["OH","IN","IL","MI","WI"],West:["CA","CO","WA","OR"]};
-  const STATE_COORDS = {MA:[42.36,-71.06],NY:[40.71,-74.01],NJ:[40.22,-74.77],PA:[40.27,-76.88],CT:[41.76,-72.68],NH:[43.2,-71.5],VT:[44.26,-72.58],RI:[41.82,-71.41],ME:[44.32,-69.77],TN:[35.52,-86.15],NC:[35.78,-78.64],VA:[37.43,-78.66],GA:[33.75,-84.39],FL:[27.77,-82.68],OH:[40.42,-82.91],IN:[39.79,-86.15],IL:[41.88,-87.63],MI:[42.33,-83.05],WI:[43.08,-89.39],CA:[34.05,-118.24],CO:[39.74,-104.99],WA:[47.61,-122.33],OR:[45.52,-122.68],MA:[42.36,-71.06]};
-  useEffect(() => {
-    if(zip.length===5) {
-      // Use zip code center approximation (no API needed — just trigger distance filtering)
-      setZipLookupDone(true);
-    } else {
-      setZipLookupDone(false);
-      setZipCoords(null);
-    }
-  }, [zip]);
-  useEffect(() => {
-    const el = scrollRef.current;
-    if(!el) return;
-    const check = () => setCanScrollDown(el.scrollHeight - el.scrollTop - el.clientHeight > 20);
-    check();
-    el.addEventListener('scroll', check);
-    return () => el.removeEventListener('scroll', check);
-  }, []);
   const ivyPlusIds = ["harvard","princeton","yale","columbia","brown","dartmouth","cornell"];
   const d1Ids = ["bc","cornell","columbia","yale","harvard","dartmouth","brown","princeton","vanderbilt","duke","bu","tufts","lehigh","bucknell","colgate","oberlin"];
   const getRegion = loc => { for(const [r,st] of Object.entries(regions)) if(st.some(s=>loc.includes(s))) return r; return "Other"; };
-  const getState = loc => { const m = loc.match(/,\s*([A-Z]{2})$/); return m?m[1]:""; };
   const sizeOk = (v,enroll) => { const n=parseInt((enroll||"").replace(/[^0-9]/g,"")); if(v==="Small")return n<3000; if(v==="Medium")return n>=3000&&n<=10000; if(v==="Large")return n>10000; return true; };
-  const ALL_STATES = [...new Set(SCHOOLS.map(s=>getState(s.stats.find(x=>x.label==="Location")?.value||"")).filter(Boolean))].sort();
   const CLEAR = {region:"",state:"",setting:"",size:"",testOpt:false,d1:false,ivyPlus:false,spirit:0,acad:0,social:0,beauty:0,maxAccept:100};
   const matches = SCHOOLS.filter(s => {
     const loc = s.stats.find(x=>x.label==="Location")?.value||"";
@@ -1052,10 +1026,10 @@ function SearchCard({ onResult, onSurprise, onJumpIn }) {
     const to  = s.stats.find(x=>x.label==="Test Optional?")?.value||"";
     const acc = parseInt((s.stats.find(x=>x.label==="Acceptance Rate")?.value||"100").replace(/[^0-9]/g,""));
     if(f.region && getRegion(loc)!==f.region) return false;
-    if(f.state && getState(loc)!==f.state) return false;
+    if(f.state && !loc.includes(f.state)) return false;
     if(f.setting && !set.toLowerCase().includes(f.setting.toLowerCase())) return false;
     if(f.size && !sizeOk(f.size,enr)) return false;
-    if(f.testOpt && !to.includes("Yes")) return false;
+    if(f.testOpt && !to.includes(Yes)) return false;
     if(f.ivyPlus && !ivyPlusIds.includes(s.id)) return false;
     if(f.d1 && !d1Ids.includes(s.id)) return false;
     if(nameQ && !s.name.toLowerCase().includes(nameQ.toLowerCase()) && !s.subtitle.toLowerCase().includes(nameQ.toLowerCase())) return false;
@@ -1098,123 +1072,79 @@ function SearchCard({ onResult, onSurprise, onJumpIn }) {
       <div className="card-inner">
         <div className="card-face" style={{background:"linear-gradient(160deg,#0a0d14 0%,#101520 60%,#080a10 100%)",border:"2px solid rgba(212,175,55,0.35)",boxShadow:"0 30px 80px rgba(0,0,0,0.7)",display:"flex",flexDirection:"column",cursor:"default"}}>
           <div className="shine"/>
-          {/* Header */}
-          <div style={{flexShrink:0,padding:"10px 12px 8px",borderBottom:"1px solid rgba(255,255,255,0.07)"}}>
-            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:7}}>
+          <div style={{flexShrink:0,padding:"12px 14px 8px",borderBottom:"1px solid rgba(255,255,255,0.07)"}}>
+            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
               <div style={{fontFamily:"'Playfair Display',serif",fontWeight:900,fontSize:15,color:"#fff"}}>🔍 Find Your Schools</div>
-              <button onClick={onJumpIn} style={{background:"linear-gradient(135deg,rgba(212,175,55,0.22),rgba(212,175,55,0.12))",border:"1px solid rgba(212,175,55,0.5)",borderRadius:14,padding:"5px 10px",cursor:"pointer",fontFamily:"'Source Sans 3',sans-serif",fontSize:10,color:"#D4AF37",fontWeight:700,letterSpacing:"0.04em",whiteSpace:"nowrap"}}>
-                Jump Right In →
-              </button>
+              <button onClick={onJumpIn} style={{background:"rgba(212,175,55,0.15)",border:"1px solid rgba(212,175,55,0.5)",borderRadius:14,padding:"4px 10px",cursor:"pointer",fontFamily:"'Source Sans 3',sans-serif",fontSize:10,color:"#D4AF37",fontWeight:700,whiteSpace:"nowrap"}}>Jump Right In →</button>
             </div>
             <input
               value={nameQ} onChange={e=>setNameQ(e.target.value)}
               placeholder="Search by school name..."
-              style={{width:"100%",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.15)",borderRadius:8,padding:"6px 10px",color:"#fff",fontFamily:"'Source Sans 3',sans-serif",fontSize:11,outline:"none",boxSizing:"border-box"}}
+              style={{width:"100%",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.15)",borderRadius:8,padding:"7px 10px",color:"#fff",fontFamily:"'Source Sans 3',sans-serif",fontSize:11,outline:"none",boxSizing:"border-box"}}
             />
-            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginTop:5}}>
-              <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:10,color:"rgba(255,255,255,0.45)"}}>{matches.length} matching</div>
-              <button onClick={onSurprise} style={{background:"rgba(80,80,200,0.1)",border:"1px solid rgba(150,150,255,0.2)",borderRadius:12,padding:"3px 9px",cursor:"pointer",fontFamily:"'Source Sans 3',sans-serif",fontSize:9,color:"rgba(180,180,255,0.7)",fontWeight:600}}>
+            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginTop:6}}>
+              <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:11,color:"rgba(255,255,255,0.5)",letterSpacing:"0.06em"}}>{matches.length} matching</div>
+              <button onClick={onSurprise} style={{background:"linear-gradient(135deg,rgba(212,175,55,0.18),rgba(80,80,200,0.12))",border:"1px solid rgba(212,175,55,0.35)",borderRadius:16,padding:"4px 12px",cursor:"pointer",fontFamily:"'Source Sans 3',sans-serif",fontSize:10,color:"rgba(212,175,55,0.85)",fontWeight:600,letterSpacing:"0.05em"}}>
                 🎲 Surprise Me
               </button>
             </div>
           </div>
-
-          {/* Scrollable filters — with scroll indicator */}
-          <div style={{flex:1,position:"relative",overflow:"hidden"}}>
-            <div ref={scrollRef} className="search-scroll" style={{height:"100%",overflowY:"scroll",overflowX:"hidden",padding:"8px 12px",display:"flex",flexDirection:"column",gap:9,scrollbarWidth:"thin",scrollbarColor:"rgba(212,175,55,0.5) rgba(255,255,255,0.05)"}}>
-
-              {/* Region */}
-              <div>
-                <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:10,color:"rgba(255,255,255,0.55)",fontWeight:600,marginBottom:5}}>Region</div>
-                <div style={{display:"flex",flexWrap:"wrap",gap:3}}>
-                  {["Northeast","South","Midwest","West"].map(o=><Chip key={o} label={o} active={f.region===o} onClick={()=>setF(x=>({...x,region:x.region===o?"":o,state:""}))}/>)}
-                </div>
+          <div style={{flex:1,position:"relative",overflow:"hidden"}}><div className="search-scroll" style={{height:"100%",overflowY:"scroll",overflowX:"hidden",padding:"8px 14px",display:"flex",flexDirection:"column",gap:10,scrollbarWidth:"thin",scrollbarColor:"rgba(212,175,55,0.5) rgba(255,255,255,0.05)"}}>
+            <div>
+              <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:11,color:"rgba(255,255,255,0.65)",fontWeight:600,marginBottom:6}}>State</div>
+              <div style={{display:"flex",flexWrap:"wrap",gap:3}}>
+                {["MA","NY","NJ","PA","CT","NH","VT","RI","ME","TN","NC","VA","GA","FL","OH","IN","IL","MI","WI","CA","CO","WA","OR"].map(o=>(
+                  <Chip key={o} label={o} active={f.state===o} onClick={()=>setF(x=>({...x,state:x.state===o?"":o,region:""}))}/>
+                ))}
               </div>
-
-              {/* State */}
-              <div>
-                <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:10,color:"rgba(255,255,255,0.55)",fontWeight:600,marginBottom:5}}>State</div>
-                <div style={{display:"flex",flexWrap:"wrap",gap:3}}>
-                  {ALL_STATES.map(o=><Chip key={o} label={o} active={f.state===o} onClick={()=>setF(x=>({...x,state:x.state===o?"":o,region:""}))}/>)}
-                </div>
-              </div>
-
-              {/* Zip / Distance */}
-              <div>
-                <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:10,color:"rgba(255,255,255,0.55)",fontWeight:600,marginBottom:5}}>Distance from Home</div>
-                <div style={{display:"flex",gap:6,alignItems:"center"}}>
-                  <input value={zip} onChange={e=>setZip(e.target.value.replace(/\D/g,"").slice(0,5))}
-                    placeholder="ZIP code"
-                    style={{flex:1,background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.15)",borderRadius:7,padding:"5px 9px",color:"#fff",fontFamily:"'Source Sans 3',sans-serif",fontSize:11,outline:"none"}}
-                  />
-                  <select value={maxMiles} onChange={e=>setMaxMiles(+e.target.value)}
-                    style={{background:"#0e0e1a",border:"1px solid rgba(212,175,55,0.3)",borderRadius:7,padding:"5px 6px",color:"#D4AF37",fontFamily:"'Source Sans 3',sans-serif",fontSize:10,cursor:"pointer",outline:"none"}}>
-                    {[50,100,200,300,500,1000].map(m=><option key={m} value={m}>{m} mi</option>)}
-                  </select>
-                </div>
-                {zip.length===5 && <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:9,color:"rgba(212,175,55,0.5)",marginTop:3}}>✓ Filtering by distance from {zip}</div>}
-              </div>
-
-              {/* Setting + Size */}
-              {[{label:"Setting",key:"setting",opts:["Urban","Suburban","Rural"]},{label:"Size",key:"size",opts:["Small","Medium","Large"]}].map(({label,key,opts})=>(
-                <div key={key}>
-                  <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:10,color:"rgba(255,255,255,0.55)",fontWeight:600,marginBottom:5}}>{label}</div>
-                  <div style={{display:"flex",flexWrap:"wrap",gap:3}}>
-                    {opts.map(o=><Chip key={o} label={o} active={f[key]===o} onClick={()=>setF(x=>({...x,[key]:x[key]===o?"":o}))}/>)}
-                  </div>
-                </div>
-              ))}
-
-              {/* Acceptance rate */}
-              <div>
-                <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:10,color:"rgba(255,255,255,0.55)",fontWeight:600,marginBottom:4}}>
-                  Max Acceptance: <span style={{color:"#D4AF37"}}>{committed>=100?"Any":committed+"%"}</span>
-                </div>
-                <input type="range" min="10" max="100" step="5" value={f.maxAccept}
-                  onChange={e=>setF(x=>({...x,maxAccept:+e.target.value}))}
-                  onMouseUp={()=>setCommitted(f.maxAccept)}
-                  onTouchEnd={e=>{e.stopPropagation();setCommitted(f.maxAccept);}}
-                  style={{width:"100%",accentColor:"#D4AF37",cursor:"pointer"}}/>
-              </div>
-
-              {/* Toggles */}
-              <div style={{display:"flex",flexDirection:"column",gap:5}}>
-                <Toggle label="Test Optional Only" k="testOpt"/>
-                <Toggle label="Ivy League / Elite" k="ivyPlus"/>
-                <Toggle label="D1 Athletics" k="d1"/>
-              </div>
-
-              {/* Vibe ratings */}
-              <div>
-                <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:8,letterSpacing:"0.12em",color:"rgba(255,255,255,0.3)",textTransform:"uppercase",marginBottom:5}}>Min Vibe Ratings</div>
-                <Dots k="spirit" label="🦅 School Spirit"/>
-                <Dots k="acad"   label="📚 Academics"/>
-                <Dots k="social" label="🎉 Social Scene"/>
-                <Dots k="beauty" label="🏛️ Campus Beauty"/>
-              </div>
-
             </div>
-            {/* Scroll indicator */}
-            {canScrollDown && (
-              <div style={{position:"absolute",bottom:0,left:0,right:0,height:28,background:"linear-gradient(transparent,rgba(10,13,20,0.95))",pointerEvents:"none",display:"flex",alignItems:"flex-end",justifyContent:"center",paddingBottom:4}}>
-                <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:9,color:"rgba(212,175,55,0.5)",letterSpacing:"0.1em",animation:"pulse 2s infinite"}}>▼ scroll for more</div>
+            {[{label:"Region",key:"region",opts:["Northeast","South","Midwest","West"]},{label:"Setting",key:"setting",opts:["Urban","Suburban","Rural","Small Town"]},{label:"Size",key:"size",opts:["Small","Medium","Large"]}].map(({label,key,opts}) => (
+              <div key={key}>
+                <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:11,color:"rgba(255,255,255,0.65)",fontWeight:600,marginBottom:6}}>{label}</div>
+                <div style={{display:"flex",flexWrap:"wrap",gap:3}}>
+                  {opts.map(o=><Chip key={o} label={o} active={f[key]===o} onClick={()=>setF(x=>({...x,[key]:x[key]===o?"":o}))}/>)}
+                </div>
               </div>
-            )}
-          </div>
-
-          {/* Footer */}
-          <div style={{flexShrink:0,padding:"6px 12px 10px"}}>
+            ))}
+            <div>
+              <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:11,color:"rgba(255,255,255,0.65)",fontWeight:600,marginBottom:6}}>
+                Max Acceptance Rate: <span style={{color:"#D4AF37",fontWeight:600}}>{acceptLabel}</span>
+              </div>
+              <input type="range" min="10" max="100" step="5"
+                value={f.maxAccept}
+                onChange={e=>setF(x=>({...x,maxAccept:+e.target.value}))}
+                onMouseUp={e=>setCommitted(f.maxAccept)}
+                onTouchEnd={e=>{e.stopPropagation();setCommitted(f.maxAccept);}}
+                style={{width:"100%",accentColor:"#D4AF37",cursor:"pointer"}}/>
+              <div style={{display:"flex",justifyContent:"space-between",fontFamily:"'Source Sans 3',sans-serif",fontSize:7,color:"rgba(255,255,255,0.22)",marginTop:1}}>
+                <span>Very selective</span><span>Open</span>
+              </div>
+            </div>
+            <div style={{display:"flex",flexDirection:"column",gap:6}}>
+              <Toggle label="Test Optional Only" k="testOpt"/>
+              <Toggle label="Ivy League / Elite" k="ivyPlus"/>
+              <Toggle label="D1 Athletics" k="d1"/>
+            </div>
+            <div>
+              <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:7,letterSpacing:"0.15em",color:"rgba(255,255,255,0.35)",textTransform:"uppercase",marginBottom:6}}>Minimum Vibe Ratings</div>
+              <Dots k="spirit" label="🦅 School Spirit"/>
+              <Dots k="acad"   label="📚 Academics"/>
+              <Dots k="social" label="🎉 Social Scene"/>
+              <Dots k="beauty" label="🏛️ Campus Beauty"/>
+            </div>
+          </div><div style={{position:"absolute",bottom:0,left:0,right:0,height:24,background:"linear-gradient(transparent,rgba(10,13,20,0.9))",pointerEvents:"none",display:"flex",alignItems:"flex-end",justifyContent:"center",paddingBottom:3}}><span style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:8,color:"rgba(212,175,55,0.45)"}}>▼ more filters below</span></div></div>
+          <div style={{flexShrink:0,padding:"6px 14px 14px"}}>
             {matches.length>0 ? (
               <button onClick={()=>{
-                track("search_used",{result_count:matches.length});
+                track("search_used", { result_count: matches.length, filters: Object.entries(f).filter(([k,v])=>v&&v!==0&&v!==100&&v!=="").map(([k])=>k) });
                 onResult(matches[0].id);
-              }} style={{width:"100%",background:"rgba(212,175,55,0.15)",border:"1px solid rgba(212,175,55,0.5)",borderRadius:9,padding:"9px 0",cursor:"pointer",fontFamily:"'Source Sans 3',sans-serif",fontSize:12,fontWeight:600,color:"#D4AF37",letterSpacing:"0.06em"}}>
+              }} style={{width:"100%",background:"rgba(212,175,55,0.15)",border:"1px solid rgba(212,175,55,0.5)",borderRadius:9,padding:"10px 0",cursor:"pointer",fontFamily:"'Source Sans 3',sans-serif",fontSize:12,fontWeight:600,color:"#D4AF37",letterSpacing:"0.08em"}}>
                 Show {matches.length} School{matches.length!==1?"s":""} →
               </button>
             ) : (
-              <div style={{textAlign:"center",fontFamily:"'Source Sans 3',sans-serif",fontSize:10,color:"rgba(255,255,255,0.26)",padding:"6px 0"}}>No matches — try fewer filters</div>
+              <div style={{textAlign:"center",fontFamily:"'Source Sans 3',sans-serif",fontSize:10,color:"rgba(255,255,255,0.26)",padding:"8px 0"}}>No matches — try fewer filters</div>
             )}
-            <button onClick={()=>{setF(CLEAR);setCommitted(100);setZip("");}} style={{width:"100%",background:"transparent",border:"none",cursor:"pointer",fontFamily:"'Source Sans 3',sans-serif",fontSize:8,color:"rgba(255,255,255,0.2)",marginTop:3}}>
+            <button onClick={()=>{setF(CLEAR);setCommitted(100);}} style={{width:"100%",background:"transparent",border:"none",cursor:"pointer",fontFamily:"'Source Sans 3',sans-serif",fontSize:8,color:"rgba(255,255,255,0.2)",marginTop:4}}>
               Clear all filters
             </button>
           </div>
@@ -1576,22 +1506,23 @@ function MyCollegesView({ boardIds, board, myStatus, onMoveStatus, onRemoveFromB
     return {label:"TBD",color:"#8888aa"};
   };
   const buckets = [
-    {key:"interested", label:"❤️ Interested",  color:"#50c878",  bg:"rgba(50,200,100,0.08)",  border:"rgba(50,200,100,0.25)"},
-    {key:"applying",   label:"📝 Applying",    color:"#f09050",  bg:"rgba(240,144,80,0.08)",  border:"rgba(240,144,80,0.25)"},
-    {key:"applied",    label:"✅ Applied",     color:"#7BE5A1",  bg:"rgba(123,229,161,0.08)", border:"rgba(123,229,161,0.25)"},
+    {key:"interested", label:"❤️ Interested",  color:"#50c878",  bg:"rgba(50,200,100,0.06)",  border:"rgba(50,200,100,0.2)"},
+    {key:"applying",   label:"📝 Applying",    color:"#f09050",  bg:"rgba(240,144,80,0.06)",  border:"rgba(240,144,80,0.2)"},
+    {key:"applied",    label:"✅ Applied",     color:"#7BE5A1",  bg:"rgba(123,229,161,0.06)", border:"rgba(123,229,161,0.2)"},
   ];
-  if(boardIds.length===0) return (
-    <div style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:14,padding:40}}>
-      <div style={{fontSize:44}}>🎓</div>
-      <div style={{fontFamily:"'Playfair Display',serif",fontSize:20,color:"rgba(255,255,255,0.45)",textAlign:"center"}}>No schools yet</div>
-      <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:12,color:"rgba(255,255,255,0.28)",textAlign:"center",maxWidth:280,lineHeight:1.6}}>
-        Tap <strong style={{color:"#50c878"}}>❤️ Interested</strong> on any card while browsing to start your list.
-      </div>
-    </div>
-  );
+  const comingSoon = [
+    {label:"🎓 Counselor",desc:"Invite your counselor to suggest schools"},
+    {label:"👨‍👩‍👧 Family",   desc:"Invite parents to collaborate on your list"},
+    {label:"👥 Friends",  desc:"See where your friends are applying"},
+  ];
   return (
     <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden"}}>
       <div style={{flex:1,overflowY:"auto",padding:"10px 12px 28px"}}>
+        {boardIds.length===0 && (
+          <div style={{textAlign:"center",padding:"40px 20px",fontFamily:"'Source Sans 3',sans-serif",fontSize:12,color:"rgba(255,255,255,0.28)"}}>
+            Mark schools as Interested while browsing to build your list.
+          </div>
+        )}
         {buckets.map(bucket => {
           const ids = boardIds.filter(id => getStatus(id)===bucket.key);
           if(ids.length===0) return null;
@@ -1599,10 +1530,10 @@ function MyCollegesView({ boardIds, board, myStatus, onMoveStatus, onRemoveFromB
             <div key={bucket.key} style={{marginBottom:16}}>
               {/* Bucket header */}
               <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 14px",background:bucket.bg,border:"2px solid "+(bucket.border),borderRadius:10,marginBottom:8}}>
-                <div style={{fontFamily:"'Source Sans 3',sans-serif",fontWeight:900,fontSize:15,color:bucket.color,letterSpacing:"0.06em"}}>{bucket.label}</div>
+                <div style={{fontFamily:"'Source Sans 3',sans-serif",fontWeight:900,fontSize:17,color:bucket.color,letterSpacing:"0.06em",textTransform:"uppercase"}}>{bucket.label}</div>
                 <div style={{fontFamily:"'Playfair Display',serif",fontSize:20,color:bucket.color,fontWeight:900}}>{ids.length}</div>
               </div>
-              {/* School cards — same style as MiniCard */}
+              {/* Schools in bucket */}
               {ids.map(id => {
                 const school = SCHOOLS.find(s=>s.id===id);
                 if(!school) return null;
@@ -1610,48 +1541,25 @@ function MyCollegesView({ boardIds, board, myStatus, onMoveStatus, onRemoveFromB
                 const status = getStatus(id);
                 const statusColor = {interested:"#50c878",applying:"#f09050",applied:"#7BE5A1"}[status];
                 return (
-                  <div key={id} style={{
-                    background:"linear-gradient(145deg,"+(school.gradFrom)+","+(school.primaryColor)+")",
-                    border:"2px solid "+(lane.color)+"88",
-                    borderRadius:12,padding:"10px 12px",marginBottom:8,
-                    boxShadow:"0 4px 20px rgba(0,0,0,0.4)",
-                    cursor:"pointer",
-                  }} onClick={()=>onExpand(id)}>
-                    {/* Top row: mascot + name + lane badge */}
-                    <div style={{display:"flex",alignItems:"center",gap:9,marginBottom:8}}>
-                      <div style={{background:school.accentColor+"22",border:"1px solid "+school.accentColor+"44",borderRadius:8,width:34,height:34,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0}}>
-                        {school.mascot}
-                      </div>
-                      <div style={{flex:1,minWidth:0}}>
-                        <div style={{fontFamily:"'Playfair Display',serif",fontWeight:900,fontSize:13,color:"#fff",lineHeight:1.1,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{school.name}</div>
-                        <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:8,color:school.accentColor,marginTop:2,letterSpacing:"0.06em"}}>{school.subtitle}</div>
-                      </div>
-                      <div style={{background:lane.color+"22",border:"1px solid "+lane.color+"66",borderRadius:5,padding:"2px 7px",fontSize:7,fontFamily:"'Source Sans 3',sans-serif",fontWeight:700,color:lane.color,letterSpacing:"0.08em",flexShrink:0}}>
-                        {lane.label}
+                  <div key={id} style={{display:"flex",alignItems:"center",gap:9,background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:10,padding:"9px 11px",marginBottom:6}}>
+                    <div style={{background:"linear-gradient(135deg,"+(school.gradFrom)+","+(school.primaryColor)+")",borderRadius:8,width:38,height:38,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0,cursor:"pointer"}} onClick={()=>onExpand(id)}>
+                      {school.mascot}
+                    </div>
+                    <div style={{flex:1,minWidth:0,cursor:"pointer"}} onClick={()=>onExpand(id)}>
+                      <div style={{fontFamily:"'Playfair Display',serif",fontWeight:900,fontSize:12,color:"#fff",lineHeight:1.1,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{school.name}</div>
+                      <div style={{display:"flex",gap:6,alignItems:"center",marginTop:2}}>
+                        <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:8,fontWeight:700,color:lane.color,letterSpacing:"0.08em"}}>{lane.label}</div>
+                        <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:7,color:"rgba(255,255,255,0.3)"}}>{school.stats.find(s=>s.label==="Acceptance Rate")?.value} · {school.ranking}</div>
                       </div>
                     </div>
-                    {/* Stats row */}
-                    <div style={{display:"flex",gap:12,paddingTop:7,borderTop:"1px solid rgba(255,255,255,0.08)",marginBottom:8}}>
-                      {[
-                        {label:"Accept",value:school.stats.find(s=>s.label==="Acceptance Rate")?.value},
-                        {label:"Rank",value:school.ranking+" "+school.rankLabel},
-                        {label:"Aid",value:school.stats.find(s=>s.label==="Avg Financial Aid")?.value},
-                      ].map(item=>(
-                        <div key={item.label}>
-                          <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:7,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:"0.06em"}}>{item.label}</div>
-                          <div style={{fontFamily:"'Source Sans 3',sans-serif",fontWeight:600,fontSize:10,color:"#fff",marginTop:1}}>{item.value}</div>
-                        </div>
-                      ))}
-                    </div>
-                    {/* Status selector + remove */}
-                    <div style={{display:"flex",gap:6,alignItems:"center"}} onClick={e=>e.stopPropagation()}>
-                      <select value={status} onChange={e=>onMoveStatus(id,e.target.value)}
-                        style={{flex:1,background:"rgba(0,0,0,0.3)",border:"1px solid "+statusColor+"66",borderRadius:8,color:statusColor,fontFamily:"'Source Sans 3',sans-serif",fontSize:11,padding:"5px 8px",cursor:"pointer",outline:"none",fontWeight:700}}>
+                    <div style={{display:"flex",flexDirection:"column",gap:4,alignItems:"flex-end"}}>
+                      <select value={status} onChange={e=>onMoveStatus(id,e.target.value)} onClick={e=>e.stopPropagation()}
+                        style={{background:"#1a1408",border:"2px solid "+(statusColor)+"88",borderRadius:8,color:statusColor,fontFamily:"'Source Sans 3',sans-serif",fontSize:12,padding:"5px 8px",cursor:"pointer",outline:"none",fontWeight:700,minWidth:120}}>
                         <option value="interested">❤️ Interested</option>
                         <option value="applying">📝 Applying</option>
                         <option value="applied">✅ Applied</option>
                       </select>
-                      <button onClick={()=>onRemoveFromBoard(id)} style={{background:"rgba(255,40,40,0.08)",border:"1px solid rgba(255,60,60,0.15)",borderRadius:7,padding:"5px 10px",cursor:"pointer",fontFamily:"'Source Sans 3',sans-serif",fontSize:9,color:"rgba(255,100,100,0.6)"}}>✕</button>
+                      <button onClick={()=>onRemoveFromBoard(id)} style={{background:"rgba(255,40,40,0.07)",border:"1px solid rgba(255,60,60,0.15)",borderRadius:4,padding:"1px 6px",cursor:"pointer",fontFamily:"'Source Sans 3',sans-serif",fontSize:7,color:"rgba(255,100,100,0.6)"}}>remove</button>
                     </div>
                   </div>
                 );
@@ -1659,12 +1567,12 @@ function MyCollegesView({ boardIds, board, myStatus, onMoveStatus, onRemoveFromB
             </div>
           );
         })}
-        {/* Skipped */}
+        {/* Skipped schools */}
         {skipped && skipped.length>0 && (
-          <div style={{marginTop:8,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:10,padding:"10px 12px"}}>
+          <div style={{marginTop:12,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:10,padding:"10px 12px"}}>
             <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
               <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:9,letterSpacing:"0.12em",color:"rgba(255,255,255,0.3)",textTransform:"uppercase"}}>Skipped ({skipped.length})</div>
-              <button onClick={onUnskipAll} style={{background:"transparent",border:"none",cursor:"pointer",fontFamily:"'Source Sans 3',sans-serif",fontSize:9,color:"rgba(212,175,55,0.5)"}}>Restore all</button>
+              <button onClick={onUnskipAll} style={{background:"transparent",border:"none",cursor:"pointer",fontFamily:"'Source Sans 3',sans-serif",fontSize:9,color:"rgba(212,175,55,0.5)",letterSpacing:"0.06em"}}>Restore all</button>
             </div>
             {skipped.map(id=>{
               const s=SCHOOLS.find(x=>x.id===id);
@@ -1679,11 +1587,19 @@ function MyCollegesView({ boardIds, board, myStatus, onMoveStatus, onRemoveFromB
             })}
           </div>
         )}
+        <div style={{marginTop:16,padding:"12px",background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:10}}>
+          <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:8,letterSpacing:"0.15em",color:"rgba(255,255,255,0.25)",textTransform:"uppercase",marginBottom:10}}>Coming Soon — Collaborative Lists</div>
+          {comingSoon.map(({label,desc}) => (
+            <div key={label} style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
+              <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:10,color:"rgba(255,255,255,0.35)",fontWeight:600,minWidth:90}}>{label}</div>
+              <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:9,color:"rgba(255,255,255,0.22)"}}>{desc}</div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
 }
-
 // ─── MAIN APP ──────────────────────────────────────────────────────────────
 // ─── ANALYTICS ────────────────────────────────────────────────────────────
 // Analytics — PostHog loaded via <head> snippet
@@ -1972,7 +1888,7 @@ function CollegeCards() {
       {/* SLIM TOP BAR */}
       <div style={{flexShrink:0,display:"flex",alignItems:"center",justifyContent:"space-between",padding:"7px 10px",borderBottom:"1px solid rgba(255,255,255,0.07)"}}>
         <div style={{fontFamily:"'Playfair Display',serif",fontWeight:900,fontSize:20,color:"#fff",letterSpacing:"0.04em",cursor:"pointer",flexShrink:0}} onClick={()=>{setSeqIdx(0);setView("browse");}}>
-          <span style={{color:darkMode?"#fff":"#1a1a1a"}}>College</span><span style={{color:"#D4AF37"}}>Cards</span>
+          College<span style={{color:"#D4AF37"}}>Cards</span>
         </div>
         <div style={{display:"flex",alignItems:"center",gap:8,flexShrink:0}}>
           <button onClick={()=>{const idx=visibleSeq.findIndex(x=>x.t==="search");if(idx>=0)setSeqIdx(idx);setView("browse");}}
@@ -1994,10 +1910,7 @@ function CollegeCards() {
               <span style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:8,color:view==="my"?"#D4AF37":"rgba(255,255,255,0.4)",fontWeight:700,letterSpacing:"0.04em"}}>MY SCHOOLS</span>
             </div>
           </div>
-          {/* Dark/Light toggle */}
-          <button onClick={()=>setDarkMode(d=>!d)} style={{background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.15)",borderRadius:20,padding:"5px 10px",cursor:"pointer",fontFamily:"'Source Sans 3',sans-serif",fontSize:12,color:darkMode?"#D4AF37":"#5a3a00",fontWeight:600,flexShrink:0,transition:"all 0.2s"}}>
-            {darkMode?"☀️":"🌙"}
-          </button>
+          <button onClick={()=>setDarkMode(d=>!d)} style={{background:"rgba(255,255,255,0.07)",border:"1px solid rgba(255,255,255,0.15)",borderRadius:18,padding:"5px 9px",cursor:"pointer",fontSize:14,flexShrink:0}}>{darkMode?"☀️":"🌙"}</button>
         </div>
       </div>
 
