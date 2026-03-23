@@ -474,9 +474,10 @@ const lehighScenes = [
 function photoScene(url, caption) {
   return {
     caption,
+    isPhoto: true,
     scene: () => (
       <img src={url} alt={caption}
-        style={{width:"100%",height:"100%",objectFit:"cover",objectPosition:"center 15%",display:"block"}}
+        style={{width:"100%",height:"100%",objectFit:"cover",objectPosition:"center 25%",display:"block"}}
         loading="lazy"
       />
     )
@@ -825,17 +826,25 @@ function CollegeCard({ school, flipped, onFlip, triageStatus, onSkip, onMaybe, o
           WebkitTransform: "translateZ(0)",
           transform: "translateZ(0)",
         }}>
-          {/* Hero — fixed height prevents SVG stretching */}
-          <div style={{position:"absolute",top:0,left:0,right:0,height:235,overflow:"hidden"}}>
+          {/* Hero image/scene */}
+          <div style={{position:"absolute",top:0,left:0,right:0,
+            height: school.scenes[photoIdx].isPhoto ? 370 : 235,
+            overflow:"hidden"
+          }}>
             <div className={"scene-wrap"+(fading?" fading":"")} style={{position:"absolute",inset:0}}><Scene/></div>
           </div>
 
-          {/* Gradient overlay from ~235px down */}
+          {/* Gradient — stronger for photos so name is readable */}
           <div style={{position:"absolute",inset:0,pointerEvents:"none",background:
-            "linear-gradient(180deg,rgba(0,0,0,0) 0%,rgba(0,0,0,0) 30%,"+
-            hexToRgba(primaryColor,0.4)+" 42%,"+
-            hexToRgba(primaryColor,0.88)+" 52%,"+
-            gradTo+" 64%)"
+            school.scenes[photoIdx].isPhoto
+              ? "linear-gradient(180deg,rgba(0,0,0,0) 0%,rgba(0,0,0,0) 28%,"+
+                hexToRgba(primaryColor,0.3)+" 42%,"+
+                hexToRgba(primaryColor,0.82)+" 55%,"+
+                gradTo+" 68%)"
+              : "linear-gradient(180deg,rgba(0,0,0,0) 0%,rgba(0,0,0,0) 30%,"+
+                hexToRgba(primaryColor,0.4)+" 42%,"+
+                hexToRgba(primaryColor,0.88)+" 52%,"+
+                gradTo+" 64%)"
           }}/>
 
           {/* Rank badge */}
