@@ -1089,7 +1089,8 @@ function SearchCard({ onResult, onSurprise, onJumpIn }) {
               </button>
             </div>
           </div>
-          <div style={{flex:1,minHeight:0,position:"relative"}}><div className="search-scroll" style={{position:"absolute",inset:0,overflowY:"scroll",overflowX:"hidden",padding:"8px 14px",display:"flex",flexDirection:"column",gap:10}}>
+          <div style={{flex:1,minHeight:0,display:"flex",flexDirection:"row"}}>
+            <div className="search-scroll" ref={el=>{ if(el){ el._scrollEl=el; } }} onScroll={e=>{const el=e.currentTarget;const pct=el.scrollTop/(el.scrollHeight-el.clientHeight||1);const thumb=el.parentNode.querySelector('.sb-thumb');if(thumb){const trackH=el.parentNode.querySelector('.sb-track').clientHeight;thumb.style.top=Math.round(pct*(trackH-Math.max(30,trackH*el.clientHeight/el.scrollHeight)))+'px';}}} style={{flex:1,overflowY:"scroll",overflowX:"hidden",padding:"8px 8px 8px 14px",display:"flex",flexDirection:"column",gap:10}}>
             <div>
               <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:11,color:"rgba(255,255,255,0.65)",fontWeight:600,marginBottom:6}}>State</div>
               <div style={{display:"flex",flexWrap:"wrap",gap:4}}>
@@ -1134,7 +1135,11 @@ function SearchCard({ onResult, onSurprise, onJumpIn }) {
               <Dots k="social" label="🎉 Social Scene"/>
               <Dots k="beauty" label="🏛️ Campus Beauty"/>
             </div>
-          </div></div>
+          </div>
+            <div className="sb-track" style={{width:6,flexShrink:0,margin:"4px 4px 4px 0",borderRadius:3,background:"rgba(212,175,55,0.12)",position:"relative"}}>
+              <div className="sb-thumb" style={{position:"absolute",top:0,left:0,right:0,minHeight:30,borderRadius:3,background:"linear-gradient(180deg,#e4bd47,#a07800)",transition:"top 0.05s"}}/>
+            </div>
+          </div>
           <div style={{flexShrink:0,padding:"6px 14px 14px"}}>
             {matches.length>0 ? (
               <button onClick={()=>{
@@ -1827,10 +1832,8 @@ function CollegeCards() {
     '    .tab-btn{background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0;flex:1;position:relative;}',
     '    .tab-badge{position:absolute;top:2px;right:calc(50% - 18px);background:#e05050;border-radius:10px;min-width:16px;height:16px;display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;font-weight:700;padding:0 3px;}',
     '    ::-webkit-scrollbar{width:3px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.12);border-radius:2px;}',
-    '    .search-scroll::-webkit-scrollbar{width:6px !important;min-width:6px !important;}',
-    '    .search-scroll::-webkit-scrollbar-track{background:rgba(212,175,55,0.08) !important;border-radius:4px !important;}',
-    '    .search-scroll::-webkit-scrollbar-thumb{background:linear-gradient(#e4bd47,#a07800) !important;border-radius:4px !important;min-height:30px;}',
-    '    .search-scroll{scrollbar-width:thin !important;scrollbar-color:#D4AF37 rgba(212,175,55,0.1) !important;}' ,
+    '    .search-scroll::-webkit-scrollbar{display:none;}',
+    '    .search-scroll{scrollbar-width:none;}' ,
 
   ].join("\n");
   const NavTab = ({id, icon, label, badge}) => {
