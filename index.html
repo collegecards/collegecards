@@ -1604,14 +1604,14 @@ function CollegeCards() {
   const [seqIdx, setSeqIdx] = useState(0);
   const [cardFlipped, setCardFlipped] = useState(false);
 
-  // Responsive card — fills mobile viewport, never upscales beyond 340x530
+  // Responsive card — scales to fill mobile viewport
   const [cardScale, setCardScale] = useState(1);
   useEffect(() => {
     const update = () => {
       const avH = window.innerHeight - 65 - 55 - 20; // minus nav, dots, padding
-      const avW = window.innerWidth - 20;
-      const s = Math.min(1, avH / 530, avW / 340);
-      setCardScale(Math.max(0.65, s)); // never smaller than 65%
+      const avW = Math.min(window.innerWidth, 430) - 20; // respect maxWidth:430 container
+      const s = Math.min(avH / 530, avW / 340); // fit both dimensions
+      setCardScale(Math.min(1.3, Math.max(0.7, s))); // 0.7–1.3 range
     };
     update();
     window.addEventListener('resize', update);
