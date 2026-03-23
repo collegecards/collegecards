@@ -730,9 +730,9 @@ function WhyNoteInput({ value, onChange, onDone, placeholder, compact }) {
   useEffect(() => { setDraft(value); }, [value]);
   const commit = () => { onChange(draft.trim()); setEditing(false); if(onDone) onDone(); };
   if(compact) {
-    if(!editing && !draft) return (<div onClick={()=>{setEditing(true);setTimeout(()=>inputRef.current?.focus(),50);}} style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:10,color:"rgba(212,175,55,0.3)",cursor:"pointer",marginTop:3}}>+ Why this one?</div>);
-    if(!editing && draft) return (<div onClick={()=>{setEditing(true);setTimeout(()=>inputRef.current?.focus(),50);}} style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:11,fontStyle:"italic",color:"rgba(255,224,140,0.6)",cursor:"pointer",marginTop:3,lineHeight:1.45,borderLeft:"1.5px solid rgba(212,175,55,0.22)",paddingLeft:7}}>{draft}</div>);
-    return (<div ref={wrapRef} style={{display:"flex",alignItems:"flex-end",gap:6,marginTop:3}}><textarea ref={inputRef} value={draft} onChange={e=>setDraft(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();commit();}}} placeholder="Why this one?" rows={2} autoFocus style={{flex:1,background:"transparent",border:"none",borderBottom:"1px solid rgba(212,175,55,0.25)",padding:"4px 0",color:"rgba(255,232,160,0.85)",fontFamily:"'Source Sans 3',sans-serif",fontSize:11,fontStyle:"italic",outline:"none",resize:"none",boxSizing:"border-box",lineHeight:1.45}}/><button onMouseDown={e=>{e.preventDefault();commit();}} style={{flexShrink:0,width:26,height:26,borderRadius:"50%",background:draft.trim()?"#D4AF37":"rgba(212,175,55,0.2)",border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",marginBottom:2}}><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 10V2M6 2L2.5 5.5M6 2L9.5 5.5" stroke={draft.trim()?"#1a1000":"rgba(212,175,55,0.4)"} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg></button></div>);
+    if(!editing && !draft) return (<div onClick={()=>{setEditing(true);setTimeout(()=>inputRef.current?.focus(),50);}} style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:10,color:"rgba(255,210,100,0.55)",cursor:"pointer",marginTop:3}}>+ Why this one?</div>);
+    if(!editing && draft) return (<div onClick={()=>{setEditing(true);setTimeout(()=>inputRef.current?.focus(),50);}} style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:11,fontStyle:"italic",color:"rgba(255,235,160,0.9)",cursor:"pointer",marginTop:3,lineHeight:1.45,borderLeft:"2px solid rgba(255,210,80,0.45)",paddingLeft:7}}>{draft}</div>);
+    return (<div ref={wrapRef} style={{display:"flex",alignItems:"flex-end",gap:6,marginTop:3}}><textarea ref={inputRef} value={draft} onChange={e=>setDraft(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();commit();}}} placeholder="Why this one?" rows={2} autoFocus style={{flex:1,background:"transparent",border:"none",borderBottom:"1px solid rgba(212,175,55,0.25)",padding:"4px 0",color:"rgba(255,240,180,0.95)",fontFamily:"'Source Sans 3',sans-serif",fontSize:11,fontStyle:"italic",outline:"none",resize:"none",boxSizing:"border-box",lineHeight:1.45}}/><button onMouseDown={e=>{e.preventDefault();commit();}} style={{flexShrink:0,width:26,height:26,borderRadius:"50%",background:draft.trim()?"#D4AF37":"rgba(212,175,55,0.2)",border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",marginBottom:2}}><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 10V2M6 2L2.5 5.5M6 2L9.5 5.5" stroke={draft.trim()?"#1a1000":"rgba(212,175,55,0.4)"} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg></button></div>);
   }
   return (<div ref={wrapRef} style={{display:"flex",alignItems:"flex-end",gap:8}}><textarea ref={inputRef} value={draft} onChange={e=>setDraft(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();commit();}}} placeholder={placeholder||"What stood out to you..."} rows={2} autoFocus style={{flex:1,background:"transparent",border:"none",borderBottom:"1px solid rgba(212,175,55,0.3)",padding:"6px 0",color:"rgba(255,232,160,0.9)",fontFamily:"'Source Sans 3',sans-serif",fontSize:12,fontStyle:"italic",outline:"none",resize:"none",boxSizing:"border-box",lineHeight:1.5}}/><button onMouseDown={e=>{e.preventDefault();commit();}} style={{flexShrink:0,width:30,height:30,borderRadius:"50%",background:draft.trim()?"#D4AF37":"rgba(212,175,55,0.18)",border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",marginBottom:4}}><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 12V2M7 2L3 6M7 2L11 6" stroke={draft.trim()?"#1a1000":"rgba(212,175,55,0.4)"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg></button></div>);
 }
@@ -1574,7 +1574,7 @@ function BoardView({ board, onRemove, onMoveLane, onReorder, onRankReorder, onRa
   );
 }
 // ─── MY COLLEGES VIEW ──────────────────────────────────────────────────────
-function MyCollegesView({ boardIds, board, myStatus, onMoveStatus, onRemoveFromBoard, onExpand, skipped, onUnskip, onUnskipAll, darkMode }) {
+function MyCollegesView({ boardIds, board, myStatus, onMoveStatus, onRemoveFromBoard, onExpand, skipped, onUnskip, onUnskipAll, darkMode, notes, onNoteChange }) {
   const getStatus = id => {
     if(myStatus.applied.includes(id)) return "applied";
     if(myStatus.applying.includes(id)) return "applying";
@@ -1635,6 +1635,20 @@ function MyCollegesView({ boardIds, board, myStatus, onMoveStatus, onRemoveFromB
                           <div style={{fontFamily:"'Source Sans 3',sans-serif",fontWeight:600,fontSize:10,color:"#fff",marginTop:1}}>{item.v||"—"}</div>
                         </div>
                       ))}
+                    </div>
+                    <div onClick={e=>e.stopPropagation()} style={{
+                      marginBottom:8,
+                      background:"rgba(0,0,0,0.22)",
+                      borderRadius:8,
+                      padding:"7px 10px",
+                      borderLeft:"2px solid rgba(255,210,80,0.5)"
+                    }}>
+                      <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:8,fontWeight:700,letterSpacing:"0.14em",textTransform:"uppercase",color:"rgba(255,210,80,0.6)",marginBottom:4}}>✏️ My Note</div>
+                      <WhyNoteInput compact
+                        value={(notes&&notes[id])||""}
+                        onChange={v=>onNoteChange(id,v)}
+                        placeholder="Why this one?"
+                      />
                     </div>
                     <div style={{display:"flex",gap:6}} onClick={e=>e.stopPropagation()}>
                       <select value={status} onChange={e=>onMoveStatus(id,e.target.value)} style={{flex:1,background:"rgba(0,0,0,0.3)",border:"1px solid "+statusColor+"55",borderRadius:8,color:statusColor,fontFamily:"'Source Sans 3',sans-serif",fontSize:11,padding:"5px 8px",cursor:"pointer",outline:"none",fontWeight:700}}>
@@ -2064,6 +2078,8 @@ function CollegeCards() {
       {view==="my" && (
         <MyCollegesView
           darkMode={darkMode}
+          notes={notes}
+          onNoteChange={(id,v)=>setNotes(n=>({...n,[id]:v}))}
           boardIds={allBoardIds}
           board={board}
           myStatus={myStatus}
