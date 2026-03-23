@@ -1604,6 +1604,20 @@ function CollegeCards() {
   const [seqIdx, setSeqIdx] = useState(0);
   const [cardFlipped, setCardFlipped] = useState(false);
 
+  // Responsive card — fills mobile viewport, never upscales beyond 340x530
+  const [cardScale, setCardScale] = useState(1);
+  useEffect(() => {
+    const update = () => {
+      const avH = window.innerHeight - 65 - 55 - 20; // minus nav, dots, padding
+      const avW = window.innerWidth - 20;
+      const s = Math.min(1, avH / 530, avW / 340);
+      setCardScale(Math.max(0.65, s)); // never smaller than 65%
+    };
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, []);
+
   // localStorage-backed state — auto-saves on every change, restores on load
   const load = (key, fallback) => { try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch(e) { return fallback; } };
   const save = (key, val) => { try { localStorage.setItem(key, JSON.stringify(val)); } catch(e) {} };
@@ -1859,22 +1873,22 @@ function CollegeCards() {
       )}
 
       {/* SLIM TOP BAR */}
-      <div style={{flexShrink:0,display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 14px",borderBottom:"1px solid rgba(255,255,255,0.07)"}}>
+      <div style={{flexShrink:0,display:"flex",alignItems:"center",justifyContent:"space-between",padding:"7px 10px",borderBottom:"1px solid rgba(255,255,255,0.07)"}}>
         <div style={{fontFamily:"'Playfair Display',serif",fontWeight:900,fontSize:20,color:"#fff",letterSpacing:"0.04em",cursor:"pointer",flexShrink:0}} onClick={()=>{setSeqIdx(0);setView("browse");}}>
           College<span style={{color:"#D4AF37"}}>Cards</span>
         </div>
         <div style={{display:"flex",alignItems:"center",gap:8,flexShrink:0}}>
           <button onClick={()=>{const idx=visibleSeq.findIndex(x=>x.t==="search");if(idx>=0)setSeqIdx(idx);setView("browse");}}
-            style={{background:"rgba(212,175,55,0.12)",border:"1.5px solid rgba(212,175,55,0.45)",borderRadius:20,padding:"7px 14px",cursor:"pointer",fontFamily:"'Source Sans 3',sans-serif",fontSize:12,color:"#D4AF37",fontWeight:600,display:"flex",alignItems:"center",gap:5,flexShrink:0,whiteSpace:"nowrap"}}>
+            style={{background:"rgba(212,175,55,0.12)",border:"1.5px solid rgba(212,175,55,0.45)",borderRadius:20,padding:"6px 11px",cursor:"pointer",fontFamily:"'Source Sans 3',sans-serif",fontSize:11,color:"#D4AF37",fontWeight:600,display:"flex",alignItems:"center",gap:4,flexShrink:0,whiteSpace:"nowrap"}}>
             🔍 Search
           </button>
           <div style={{display:"flex",gap:8,alignItems:"flex-start"}}>
             <div onClick={()=>setView("browse")} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2,cursor:"pointer"}}>
-              <div style={{background:view==="browse"?"rgba(212,175,55,0.12)":"rgba(255,255,255,0.06)",border:"2px solid "+(view==="browse"?"#D4AF37":"rgba(255,255,255,0.22)"),borderRadius:9,width:40,height:40,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22}}>🏫</div>
+              <div style={{background:view==="browse"?"rgba(212,175,55,0.12)":"rgba(255,255,255,0.06)",border:"2px solid "+(view==="browse"?"#D4AF37":"rgba(255,255,255,0.22)"),borderRadius:8,width:36,height:36,display:"flex",alignItems:"center",justifyContent:"center",fontSize:19}}>🏫</div>
               <span style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:8,color:view==="browse"?"#D4AF37":"rgba(255,255,255,0.4)",fontWeight:700,letterSpacing:"0.04em"}}>BROWSE</span>
             </div>
             <div onClick={()=>setView("board")} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2,cursor:"pointer",position:"relative"}}>
-              <div style={{background:"rgba(255,255,255,0.06)",border:"2px solid "+(view==="board"?"#D4AF37":"rgba(255,255,255,0.22)"),borderRadius:9,width:40,height:40,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22}}>📋</div>
+              <div style={{background:"rgba(255,255,255,0.06)",border:"2px solid "+(view==="board"?"#D4AF37":"rgba(255,255,255,0.22)"),borderRadius:8,width:36,height:36,display:"flex",alignItems:"center",justifyContent:"center",fontSize:19}}>📋</div>
               <span style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:8,color:view==="board"?"#D4AF37":"rgba(255,255,255,0.4)",fontWeight:700,letterSpacing:"0.04em"}}>BOARD</span>
               {totalBoard>0 && <span style={{position:"absolute",top:-5,right:-5,background:"#e05050",borderRadius:10,minWidth:16,height:16,display:"flex",alignItems:"center",justifyContent:"center",fontSize:8,color:"#fff",fontWeight:700,padding:"0 3px"}}>{totalBoard}</span>}
             </div>
@@ -1896,13 +1910,17 @@ function CollegeCards() {
             {cur?.t==="welcome" && <WelcomeCard onDismiss={next}/>}
             {cur?.t==="search"  && <SearchCard onResult={id=>{jumpTo(id);}} onSurprise={()=>{surpriseMe();next();}}/>}
             {cur?.t==="ad"      && <AdCard ad={cur.ad}/>}
-            {cur?.t==="school"  && <CollegeCard key={school.id} school={school} flipped={cardFlipped} onFlip={setCardFlipped}
-              triageStatus={triageStatus}
-              onSkip={()=>markSkip(school.id)}
-              onMaybe={()=>markMaybe(school.id)}
-              onInterested={()=>markInterested(school.id)}
-              onRemove={()=>removeFromBoard(school.id)}
-            />}
+            {cur?.t==="school"  && (
+              <div style={{transform:`scale(${cardScale})`,transformOrigin:"top center",width:340,height:530,marginBottom:`${530*(cardScale-1)}px`}}>
+                <CollegeCard key={school.id} school={school} flipped={cardFlipped} onFlip={setCardFlipped}
+                  triageStatus={triageStatus}
+                  onSkip={()=>markSkip(school.id)}
+                  onMaybe={()=>markMaybe(school.id)}
+                  onInterested={()=>markInterested(school.id)}
+                  onRemove={()=>removeFromBoard(school.id)}
+                />
+              </div>
+            )}
             <button onClick={next} style={{position:"absolute",right:-14,top:240,zIndex:10,background:"rgba(0,0,0,0.6)",border:"1px solid rgba(255,255,255,0.18)",borderRadius:"50%",width:30,height:30,cursor:"pointer",color:"#fff",fontSize:18,display:"flex",alignItems:"center",justifyContent:"center"}}>›</button>
           </div>
 
