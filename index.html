@@ -1842,25 +1842,30 @@ function CollegeCards() {
     setTimeout(() => setWhyPrompt(id), 800);
   };
   const markMaybe = id => {
-    if(triage.maybe.includes(id)) {
-      setTriage(t=>({...t,maybe:t.maybe.filter(x=>x!==id)}));
-      track("school_triaged", { school_id: id, action: "unmaybe", session_views: sessionViews.current });
-    } else {
-      setTriage(t=>({...t,maybe:[...t.maybe,id],skipped:t.skipped.filter(x=>x!==id)}));
-      sessionTriaged.current++;
-      track("school_triaged", { school_id: id, action: "maybe", session_views: sessionViews.current });
-      setCardFlipped(false);
-    }
+    setTriage(t => {
+      if(t.maybe.includes(id)) {
+        track("school_triaged", { school_id: id, action: "unmaybe", session_views: sessionViews.current });
+        return {...t, maybe:t.maybe.filter(x=>x!==id)};
+      } else {
+        sessionTriaged.current++;
+        track("school_triaged", { school_id: id, action: "maybe", session_views: sessionViews.current });
+        setCardFlipped(false);
+        return {...t, maybe:[...t.maybe,id], skipped:t.skipped.filter(x=>x!==id)};
+      }
+    });
   };
   const markSkip = id => {
-    if(triage.skipped.includes(id)) {
-      setTriage(t=>({...t,skipped:t.skipped.filter(x=>x!==id)}));
-    } else {
-      setTriage(t=>({...t,skipped:[...t.skipped,id],maybe:t.maybe.filter(x=>x!==id)}));
-      sessionTriaged.current++;
-      setCardFlipped(false);
-    }
-    track("school_triaged", { school_id: id, action: "skip", session_views: sessionViews.current });
+    setTriage(t => {
+      if(t.skipped.includes(id)) {
+        track("school_triaged", { school_id: id, action: "unskip", session_views: sessionViews.current });
+        return {...t, skipped:t.skipped.filter(x=>x!==id)};
+      } else {
+        sessionTriaged.current++;
+        setCardFlipped(false);
+        track("school_triaged", { school_id: id, action: "skip", session_views: sessionViews.current });
+        return {...t, skipped:[...t.skipped,id], maybe:t.maybe.filter(x=>x!==id)};
+      }
+    });
   };
   const unSkipAll = () => setTriage(t=>({...t,skipped:[]}));
   const unSkip = id => setTriage(t=>({...t,skipped:t.skipped.filter(x=>x!==id)}));
