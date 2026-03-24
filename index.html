@@ -738,11 +738,12 @@ function WhyNoteInput({ value, onChange, onDone, placeholder, compact }) {
 }
 
 // ─── SUGGESTION CARD ──────────────────────────────────────────────────────
-function SuggestionCard({ suggestions, onJumpTo, onDismiss }) {
+function SuggestionCard({ suggestions, onJumpTo, onDismiss, onHide }) {
   return (
     <div className="card-scene" style={{cursor:"default"}}>
       <div className="card-inner">
         <div className="card-face" style={{background:"linear-gradient(160deg,#0d0a18 0%,#16100a 60%,#0a0810 100%)",border:"2px solid rgba(212,175,55,0.5)",boxShadow:"0 22px 70px rgba(0,0,0,0.7)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"28px 22px",gap:0}}>
+          <button onClick={onHide} style={{position:"absolute",top:12,right:12,background:"rgba(255,255,255,0.08)",border:"none",borderRadius:"50%",width:24,height:24,cursor:"pointer",color:"rgba(255,255,255,0.4)",fontSize:14,display:"flex",alignItems:"center",justifyContent:"center"}}>✕</button>
           <div style={{fontSize:32,marginBottom:12}}>✨</div>
           <div style={{fontFamily:"'Playfair Display',serif",fontWeight:900,fontSize:20,color:"#fff",textAlign:"center",marginBottom:6}}>You might also like</div>
           <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:11,color:"rgba(212,175,55,0.6)",textAlign:"center",marginBottom:24,letterSpacing:"0.04em"}}>Based on your interested schools</div>
@@ -815,7 +816,7 @@ function CollegeCard({ school, flipped, onFlip, triageStatus, onSkip, onMaybe, o
   const doShare = e => {
     if(e) e.stopPropagation();
     track("school_shared", { school_id: school.id, school_name: school.name });
-    const url = "https://www.collegecards.app?school=" + school.id;
+    const url = (window.location.hostname==="localhost"?"http://localhost":"https://www.collegecards.app")+"?school="+school.id;
     const txt = "Check out " + school.name + " on CollegeCards! " +
       school.ranking + " " + school.rankLabel + " · " +
       (school.stats.find(s=>s.label==="Acceptance Rate")?.value||"") + " acceptance\n" + url;
@@ -914,8 +915,8 @@ function CollegeCard({ school, flipped, onFlip, triageStatus, onSkip, onMaybe, o
 
           {/* Share + Dots */}
           <div style={{position:"absolute",top:10,right:10,display:"flex",flexDirection:"column",alignItems:"flex-end",gap:8,zIndex:4}}>
-            <button onClick={e=>{e.stopPropagation();doShare(e);}} style={{background:"rgba(0,0,0,0.35)",border:"1px solid rgba(255,255,255,0.25)",borderRadius:8,width:28,height:28,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer"}}>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.85)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+            <button onClick={e=>{e.stopPropagation();doShare(e);}} style={{background:"rgba(0,0,0,0.28)",border:"1px solid rgba(255,255,255,0.18)",borderRadius:6,width:22,height:22,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer"}}>
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.75)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
             </button>
             <div style={{display:"flex",gap:5}}>
               {school.scenes.map((_,i)=>(
@@ -1068,7 +1069,7 @@ function CollegeCard({ school, flipped, onFlip, triageStatus, onSkip, onMaybe, o
                 style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",gap:5,padding:"8px 0",background:accentColor+"18",border:"1px solid "+(accentColor)+"44",borderRadius:7,textDecoration:"none",color:accentColor,fontFamily:"'Source Sans 3',sans-serif",fontSize:10,fontWeight:600,letterSpacing:"0.08em"}}>
                 🌐 Visit →
               </a>
-              <button onClick={doShare}
+              <button onClick={e=>{e.stopPropagation();doShare(e);}}
                 style={{flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",padding:"8px 14px",background:"rgba(255,255,255,0.07)",border:"1px solid rgba(255,255,255,0.18)",borderRadius:7,cursor:"pointer",color:"rgba(255,255,255,0.7)",minWidth:60}}>
                 {shareMsg
                   ? <span style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:9,color:"#50c878",fontWeight:700}}>{shareMsg}</span>
@@ -1638,7 +1639,7 @@ function BoardView({ board, onRemove, onMoveLane, onReorder, onRankReorder, onRa
   );
 }
 // ─── MY COLLEGES VIEW ──────────────────────────────────────────────────────
-function MyCollegesView({ boardIds, board, myStatus, onMoveStatus, onRemoveFromBoard, onExpand, skipped, onUnskip, onUnskipAll, darkMode }) {
+function MyCollegesView({ boardIds, board, myStatus, onMoveStatus, onRemoveFromBoard, onExpand, skipped, onUnskip, onUnskipAll, darkMode, notes, onNoteChange, suggestions, onJumpTo }) {
   const getStatus = id => {
     if(myStatus.applied.includes(id)) return "applied";
     if(myStatus.applying.includes(id)) return "applying";
@@ -1823,6 +1824,7 @@ function CollegeCards() {
   const [board, setBoard] = useState(() => load("cc_board", {reach:[],match:[],safety:[],undecided:[],rankOrder:[]}));
   const [notes, setNotes] = useState(() => load("cc_notes", {}));
   const [whyPrompt, setWhyPrompt] = useState(null);
+  const [suggestionDismissed, setSuggestionDismissed] = useState(false);
   const [kbOffset, setKbOffset] = useState(0);
   useEffect(() => {
     const vv = window.visualViewport;
@@ -1885,7 +1887,7 @@ function CollegeCards() {
   const allBoardIds = [...board.reach,...board.match,...board.safety,...board.undecided];
 
   // Inject suggestion card after every 5th interested school
-  const suggestions = allBoardIds.length>=2 ? getSuggestions(allBoardIds, allBoardIds, triage.skipped) : [];
+  const suggestions = (allBoardIds.length>=2 && !suggestionDismissed) ? getSuggestions(allBoardIds, allBoardIds, triage.skipped) : [];
   const visibleSeq = React.useMemo(() => {
     if(suggestions.length===0) return SEQ;
     // Insert after 8th school card
@@ -2172,7 +2174,7 @@ function CollegeCards() {
             )}
             {cur?.t==="suggest" && (
               <div style={{transform:`scale(${cardScale})`,transformOrigin:"top center",width:340,height:530,marginBottom:`${530*(cardScale-1)}px`}}>
-                <SuggestionCard suggestions={cur.suggestions} onJumpTo={id=>{jumpTo(id);}} onDismiss={next}/>
+                <SuggestionCard suggestions={cur.suggestions} onJumpTo={id=>{jumpTo(id);}} onDismiss={next} onHide={()=>setSuggestionDismissed(true)}/>
               </div>
             )}
             {cur?.t==="school"  && (
