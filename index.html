@@ -2220,9 +2220,7 @@ function CollegeCards() {
                 <SuggestionCard suggestions={cur.suggestions} onDismiss={next} onHide={()=>{setSuggestThreshold(t=>allBoardIds.length+3);next();}} onExpand={setExpandId}/>
               </div>
             )}
-            {cur?.t==="school" && suggestReturnIdx && (
-              <button onClick={()=>{const si=visibleSeq.findIndex(x=>x.t==="suggest");if(si>=0)setSeqIdx(si);setSuggestReturnIdx(null);}} style={{width:Math.round(340*cardScale),marginBottom:6,background:"rgba(212,175,55,0.25)",border:"2px solid rgba(212,175,55,0.7)",borderRadius:10,padding:"8px 0",cursor:"pointer",fontFamily:"'Source Sans 3',sans-serif",fontSize:11,color:"#f0cc55",fontWeight:700,letterSpacing:"0.04em",textAlign:"center",display:"block",boxShadow:"0 2px 12px rgba(212,175,55,0.3)"}}>✨ ← Back to suggestions</button>
-            )}
+
             {cur?.t==="school"  && (
               <div style={{transform:`scale(${cardScale})`,transformOrigin:"top center",width:340,height:530,marginBottom:`${530*(cardScale-1)}px`}}>
                 <CollegeCard key={school.id} school={school} flipped={cardFlipped} onFlip={setCardFlipped}
