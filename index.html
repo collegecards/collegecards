@@ -1940,7 +1940,7 @@ function CollegeCards() {
     const idx = SEQ.findIndex((x,i)=>x.t==="school"&&SEQ.slice(0,i+1).filter(y=>y.t==="school").length===8);
     if(idx<0) return [...SEQ, {t:"suggest",suggestions:suggestions}];
     return [...SEQ.slice(0,idx+1), {t:"suggest",suggestions:suggestions}, ...SEQ.slice(idx+1)];
-  }, [suggestions.length, suggestionDismissed, triage.skipped.length]);
+  }, [suggestions.length, suggestThreshold, allBoardIds.length, triage.skipped.length]);
 
   const cur = visibleSeq[seqIdx % visibleSeq.length];
   const school = cur?.t==="school" ? cur.s : null;
@@ -2231,7 +2231,7 @@ function CollegeCards() {
             )}
             {cur?.t==="suggest" && (
               <div style={{transform:`scale(${cardScale})`,transformOrigin:"top center",width:340,height:530,marginBottom:`${530*(cardScale-1)}px`}}>
-                <SuggestionCard suggestions={cur.suggestions} onJumpTo={id=>{setSuggestReturnIdx(true);jumpTo(id);}} onDismiss={next} onHide={()=>setSuggestionDismissed(true)}/>
+                <SuggestionCard suggestions={cur.suggestions} onJumpTo={id=>{setSuggestReturnIdx(true);jumpTo(id);}} onDismiss={next} onHide={()=>{setSuggestThreshold(t=>allBoardIds.length+3);next();}}/>
               </div>
             )}
             {cur?.t==="school" && suggestReturnIdx && (
