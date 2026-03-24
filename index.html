@@ -1306,7 +1306,7 @@ function MiniCard({ school, lane, onRemove, onMoveLane, onExpand, isDragging, dr
         <button onClick={e=>{e.stopPropagation();onRemove(school.id);}} style={{background:"rgba(80,80,80,0.4)",border:"1px solid rgba(255,60,60,0.3)",borderRadius:5,width:22,height:22,cursor:"pointer",color:"#ff8888",fontSize:12,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontWeight:700}}>✕</button>
       </div>
       {/* Stats grid */}
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:"5px 8px",marginTop:8,paddingTop:7,borderTop:"1px solid rgba(255,255,255,0.08)"}}>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:"5px 8px",marginTop:8,paddingTop:7,borderTop:"1px solid rgba(255,255,255,0.15)"}}>
         {[
           {l:"Accept",v:school.stats.find(s=>s.label==="Acceptance Rate")?.value||"—"},
           {l:"Avg SAT",v:(school.stats.find(s=>s.label==="SAT Range")?.value||"—").split("–")[0]},
@@ -1316,13 +1316,13 @@ function MiniCard({ school, lane, onRemove, onMoveLane, onExpand, isDragging, dr
           {l:"Setting",v:school.stats.find(s=>s.label==="Campus Setting")?.value||"—"},
         ].map(item => (
           <div key={item.l}>
-            <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:7,color:"rgba(255,255,255,0.38)",textTransform:"uppercase",letterSpacing:"0.05em"}}>{item.l}</div>
+            <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:7,color:"rgba(255,255,255,0.55)",textTransform:"uppercase",letterSpacing:"0.05em"}}>{item.l}</div>
             <div style={{fontFamily:"'Source Sans 3',sans-serif",fontWeight:700,fontSize:11,color:"#fff",marginTop:1}}>{item.v}</div>
           </div>
         ))}
       </div>
       <div style={{marginTop:9}}>
-        <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:7,letterSpacing:"0.14em",color:"rgba(255,255,255,0.3)",textTransform:"uppercase",marginBottom:5}}>Classify as</div>
+        <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:7,letterSpacing:"0.14em",color:"rgba(255,255,255,0.5)",textTransform:"uppercase",marginBottom:5}}>Classify as</div>
         <div style={{display:"flex",gap:5}}>
           {allLanes.map(l => (
             <button key={l} onClick={e=>{e.stopPropagation();onMoveLane(school.id,l);}}
@@ -1338,7 +1338,7 @@ function MiniCard({ school, lane, onRemove, onMoveLane, onExpand, isDragging, dr
         </div>
       </div>
       <div style={{marginTop:7,display:"flex",justifyContent:"center"}}>
-        <button onClick={e=>{e.stopPropagation();onExpand(school.id);}} style={{background:"rgba(255,255,255,0.07)",border:"1px solid rgba(255,255,255,0.18)",borderRadius:6,padding:"4px 14px",cursor:"pointer",fontFamily:"'Source Sans 3',sans-serif",fontSize:9,color:"rgba(255,255,255,0.55)",letterSpacing:"0.08em"}}>
+        <button onClick={e=>{e.stopPropagation();onExpand(school.id);}} style={{background:"rgba(0,0,0,0.2)",border:"1px solid rgba(255,255,255,0.25)",borderRadius:6,padding:"4px 14px",cursor:"pointer",fontFamily:"'Source Sans 3',sans-serif",fontSize:9,color:"rgba(255,255,255,0.8)",letterSpacing:"0.08em"}}>
           View full card →
         </button>
       </div>
@@ -1388,7 +1388,7 @@ function BoardView({ board, onRemove, onMoveLane, onReorder, onRankReorder, onRa
       {/* Sub-nav */}
       <div style={{flexShrink:0,display:"flex",gap:6,padding:"10px 14px 0",alignItems:"center"}}>
         <button onClick={()=>setSubView("classify")}
-          style={{background:subView==="classify"?"rgba(212,175,55,0.2)":"rgba(255,255,255,0.05)",border:"2px solid "+(subView==="classify"?"#D4AF37":"rgba(255,255,255,0.15)"),color:subView==="classify"?"#D4AF37":"rgba(255,255,255,0.55)",borderRadius:8,padding:"7px 14px",cursor:"pointer",fontFamily:"'Source Sans 3',sans-serif",fontSize:12,fontWeight:800,letterSpacing:"0.05em",boxShadow:subView==="classify"?"0 0 16px rgba(212,175,55,0.4)":"none"}}>
+          style={{background:subView==="classify"?"rgba(212,175,55,0.2)":(darkMode?"rgba(255,255,255,0.10)":"rgba(0,0,0,0.08)"),border:"2px solid "+(subView==="classify"?"#D4AF37":(darkMode?"rgba(255,255,255,0.30)":"rgba(0,0,0,0.25)")),color:subView==="classify"?"#D4AF37":(darkMode?"rgba(255,255,255,0.80)":"rgba(0,0,0,0.75)"),borderRadius:8,padding:"7px 14px",cursor:"pointer",fontFamily:"'Source Sans 3',sans-serif",fontSize:12,fontWeight:800,letterSpacing:"0.05em",boxShadow:subView==="classify"?"0 0 16px rgba(212,175,55,0.4)":"none"}}>
           {"🗂️ Classify"+(tbdCount>0?" ("+tbdCount+" TBD)":"")}
         </button>
         <button onClick={()=>setSubView("rank")}
@@ -1547,9 +1547,9 @@ function BoardView({ board, onRemove, onMoveLane, onReorder, onRankReorder, onRa
                 onDragStart={()=>setDragging({id:school.id,fromLane:lane})}
                 onDragOver={e=>{e.preventDefault();setDragOver({lane:"rank",idx});}}
                 onDrop={handleDrop}
-                style={{display:"flex",alignItems:"center",gap:10,background:"linear-gradient(145deg,"+(school.gradFrom)+"88,"+(school.primaryColor)+"88)",border:"2px solid "+(color),borderRadius:11,padding:"9px 12px",marginBottom:6,cursor:dragging?.id===school.id?"grabbing":"grab",opacity:dragging?.id===school.id?0.4:1,outline:isOver?"2px dashed "+(color):"none",boxShadow:"0 2px 10px rgba(0,0,0,0.4), 0 0 10px "+(color)+"33",transition:"opacity 0.15s"}}>
+                style={{display:"flex",alignItems:"center",gap:10,background:"linear-gradient(135deg,"+(school.gradFrom)+","+(school.primaryColor)+")",border:"2px solid "+(color),borderRadius:11,padding:"9px 12px",marginBottom:6,cursor:dragging?.id===school.id?"grabbing":"grab",opacity:dragging?.id===school.id?0.4:1,outline:isOver?"2px dashed "+(color):"none",boxShadow:"0 2px 10px rgba(0,0,0,0.4), 0 0 10px "+(color)+"33",transition:"opacity 0.15s"}}>
                 <div style={{fontFamily:"'Playfair Display',serif",fontWeight:900,fontSize:20,color:"rgba(255,255,255,0.75)",minWidth:28,textAlign:"center"}}>{idx+1}</div>
-                <div style={{color:"rgba(255,255,255,0.18)",fontSize:13,cursor:"grab"}}>⠿</div>
+                <div style={{color:"rgba(255,255,255,0.4)",fontSize:13,cursor:"grab"}}>⠿</div>
                 <span style={{fontSize:20}}>{school.mascot}</span>
                 <div style={{flex:1,minWidth:0}}>
                   <div style={{fontFamily:"'Playfair Display',serif",fontWeight:900,fontSize:13,color:"#fff",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{school.name}</div>
@@ -1558,12 +1558,12 @@ function BoardView({ board, onRemove, onMoveLane, onReorder, onRankReorder, onRa
                 <div style={{background:color,borderRadius:4,padding:"2px 6px",fontFamily:"'Source Sans 3',sans-serif",fontSize:7,fontWeight:700,color:lane==="undecided"?"#fff":"#000",textTransform:"uppercase",letterSpacing:"0.08em",flexShrink:0}}>
                   {LANE_LABELS[lane]}
                 </div>
-                <button onClick={()=>setExpandId(school.id)} style={{background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:4,padding:"3px 7px",cursor:"pointer",fontFamily:"'Source Sans 3',sans-serif",fontSize:8,color:"rgba(255,255,255,0.4)",flexShrink:0}}>View</button>
+                <button onClick={()=>setExpandId(school.id)} style={{background:"rgba(0,0,0,0.2)",border:"1px solid rgba(255,255,255,0.2)",borderRadius:4,padding:"3px 7px",cursor:"pointer",fontFamily:"'Source Sans 3',sans-serif",fontSize:8,color:"rgba(255,255,255,0.7)",flexShrink:0}}>View</button>
                 <div style={{display:"flex",flexDirection:"column",gap:2,flexShrink:0}}>
                   <button onClick={()=>onRankMove(school.id,-1)} disabled={idx===0}
-                    style={{background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:3,width:22,height:18,cursor:idx===0?"default":"pointer",color:idx===0?"rgba(255,255,255,0.14)":"rgba(255,255,255,0.55)",fontSize:9,display:"flex",alignItems:"center",justifyContent:"center"}}>▲</button>
+                    style={{background:"rgba(0,0,0,0.2)",border:"1px solid rgba(255,255,255,0.18)",borderRadius:3,width:22,height:18,cursor:idx===0?"default":"pointer",color:idx===0?"rgba(255,255,255,0.2)":"rgba(255,255,255,0.8)",fontSize:9,display:"flex",alignItems:"center",justifyContent:"center"}}>▲</button>
                   <button onClick={()=>onRankMove(school.id,1)} disabled={idx===rankedSchools.length-1}
-                    style={{background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:3,width:22,height:18,cursor:idx===rankedSchools.length-1?"default":"pointer",color:idx===rankedSchools.length-1?"rgba(255,255,255,0.14)":"rgba(255,255,255,0.55)",fontSize:9,display:"flex",alignItems:"center",justifyContent:"center"}}>▼</button>
+                    style={{background:"rgba(0,0,0,0.2)",border:"1px solid rgba(255,255,255,0.18)",borderRadius:3,width:22,height:18,cursor:idx===rankedSchools.length-1?"default":"pointer",color:idx===rankedSchools.length-1?"rgba(255,255,255,0.2)":"rgba(255,255,255,0.8)",fontSize:9,display:"flex",alignItems:"center",justifyContent:"center"}}>▼</button>
                 </div>
               </div>
             );
