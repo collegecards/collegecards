@@ -749,7 +749,7 @@ function SuggestionCard({ suggestions, onJumpTo, onDismiss, onHide }) {
           <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:13,color:"rgba(212,175,55,0.75)",textAlign:"center",marginBottom:24,letterSpacing:"0.02em",fontWeight:600}}>Based on your interested schools</div>
           <div style={{display:"flex",flexDirection:"column",gap:10,width:"100%"}}>
             {suggestions.map(s=>(
-              <button key={s.id} onClick={()=>onExpand(s.id)} style={{
+              <button key={s.id} onClick={()=>setLocalExpandId(s.id)} style={{
                 display:"flex",alignItems:"center",gap:12,
                 background:"linear-gradient(135deg,"+s.gradFrom+","+s.primaryColor+")",
                 border:"2px solid "+(s.accentColor||"rgba(212,175,55,0.4)"),
@@ -1342,7 +1342,7 @@ function FullCardModal({ schoolId, onClose }) {
       <div onClick={e=>e.stopPropagation()} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:10}}>
         <CollegeCard school={s} flipped={flipped} onFlip={setFlipped}
           triageStatus={null} onSkip={()=>{}} onMaybe={()=>{}} onInterested={()=>{}} onRemove={()=>{}}/>
-        <button onClick={onClose} style={{background:"rgba(255,255,255,0.07)",border:"1px solid rgba(255,255,255,0.18)",borderRadius:8,padding:"7px 22px",cursor:"pointer",color:"rgba(255,255,255,0.55)",fontFamily:"'Source Sans 3',sans-serif",fontSize:11,letterSpacing:"0.1em"}}>✕ Close</button>
+        <button onClick={onClose} style={{background:"rgba(212,175,55,0.15)",border:"1px solid rgba(212,175,55,0.5)",borderRadius:8,padding:"7px 22px",cursor:"pointer",color:"#D4AF37",fontFamily:"'Source Sans 3',sans-serif",fontSize:11,letterSpacing:"0.1em",fontWeight:700}}>✕ Close</button>
       </div>
     </div>
   );
@@ -1659,6 +1659,7 @@ function BoardView({ board, onRemove, onMoveLane, onReorder, onRankReorder, onRa
 }
 // ─── MY COLLEGES VIEW ──────────────────────────────────────────────────────
 function MyCollegesView({ boardIds, board, myStatus, onMoveStatus, onRemoveFromBoard, onExpand, skipped, onUnskip, onUnskipAll, darkMode, notes, onNoteChange, suggestions, onJumpTo }) {
+  const [localExpandId, setLocalExpandId] = useState(null);
   const getStatus = id => {
     if(myStatus.applied.includes(id)) return "applied";
     if(myStatus.applying.includes(id)) return "applying";
@@ -1686,6 +1687,7 @@ function MyCollegesView({ boardIds, board, myStatus, onMoveStatus, onRemoveFromB
   );
   return (
     <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden"}}>
+      {localExpandId && <FullCardModal schoolId={localExpandId} onClose={()=>setLocalExpandId(null)}/>}
       <div style={{flex:1,overflowY:"auto",padding:"10px 12px 28px"}}>
         {buckets.map(bucket => {
           const ids = boardIds.filter(id => getStatus(id)===bucket.key);
@@ -1865,7 +1867,7 @@ function CollegeCards() {
   const [notes, setNotes] = useState(() => load("cc_notes", {}));
   const [whyPrompt, setWhyPrompt] = useState(null);
   useEffect(() => { setWhyPrompt(null); }, [seqIdx]);
-  const [suggestionDismissed, setSuggestionDismissed] = useState(false);
+  const [suggestThreshold, setSuggestThreshold] = useState(2); // show after N interested
   const [suggestReturnIdx, setSuggestReturnIdx] = useState(null);
   const [kbOffset, setKbOffset] = useState(0);
   useEffect(() => {
@@ -1931,7 +1933,7 @@ function CollegeCards() {
 
   // Inject suggestion card after every 5th interested school
   const suggestions = allBoardIds.length>=2 ? getSuggestions(allBoardIds, allBoardIds, triage.skipped) : [];
-  const showSuggestCard = suggestions.length>0 && !suggestionDismissed;
+  const showSuggestCard = suggestions.length>0 && allBoardIds.length>suggestThreshold;
   const visibleSeq = React.useMemo(() => {
     if(!showSuggestCard) return SEQ;
     // Insert after 8th school card
