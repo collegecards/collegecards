@@ -744,21 +744,23 @@ function CollegeCard({ school, flipped, onFlip, triageStatus, onSkip, onMaybe, o
   const [shareMsg, setShareMsg] = useState("");
   const touchMoved = useRef(false);
   const backScrollRef = useRef(null);
+  const bsbThumbRef = useRef(null);
+  const bsbTrackRef = useRef(null);
   const { accentColor, gradFrom, gradTo, borderColor, primaryColor } = school;
 
   useEffect(() => {
-    const el = backScrollRef.current;
-    if(!el) return;
-    const setThumb = () => {
-      const track = el.parentNode?.querySelector('.bsb-track');
-      const thumb = el.parentNode?.querySelector('.bsb-thumb');
-      if(!track||!thumb) return;
+    if(!flipped) return;
+    const init = () => {
+      const el = backScrollRef.current;
+      const track = bsbTrackRef.current;
+      const thumb = bsbThumbRef.current;
+      if(!el||!track||!thumb) return;
       const trackH = track.clientHeight;
       const thumbH = Math.max(24, trackH*(el.clientHeight/el.scrollHeight));
       thumb.style.height = thumbH+'px';
       thumb.style.top = '0px';
     };
-    setTimeout(setThumb, 150);
+    setTimeout(init, 150);
   }, [flipped, school.id]);
 
   useEffect(() => { setPhotoIdx(0); }, [school.id]);
@@ -971,15 +973,15 @@ function CollegeCard({ school, flipped, onFlip, triageStatus, onSkip, onMaybe, o
           <div style={{flex:1,minHeight:0,display:"flex",flexDirection:"row"}}>
             <div ref={backScrollRef} className="back-scroll" onScroll={e=>{
               const el=e.currentTarget;
-              const track=el.parentNode.querySelector('.bsb-track');
-              const thumb=el.parentNode.querySelector('.bsb-thumb');
+              const thumb=bsbThumbRef.current;
+              const track=bsbTrackRef.current;
               if(!track||!thumb) return;
               const trackH=track.clientHeight;
               const thumbH=Math.max(24, trackH*(el.clientHeight/el.scrollHeight));
               const pct=el.scrollTop/(el.scrollHeight-el.clientHeight||1);
               thumb.style.height=thumbH+'px';
               thumb.style.top=Math.round(pct*(trackH-thumbH))+'px';
-            }} ref={backScrollRef} style={{flex:1,overflowY:"scroll",overflowX:"hidden",padding:"2px 4px 2px 8px"}}>
+            }} style={{flex:1,overflowY:"scroll",overflowX:"hidden",padding:"2px 4px 2px 8px"}}>
             {school.stats.map((s,i) => {
               const h = hovStat===i;
               return (
@@ -992,8 +994,8 @@ function CollegeCard({ school, flipped, onFlip, triageStatus, onSkip, onMaybe, o
               );
             })}
             </div>
-            <div className="bsb-track" style={{width:5,flexShrink:0,margin:"4px 3px 4px 0",borderRadius:3,background:accentColor+"18",position:"relative"}}>
-              <div className="bsb-thumb" style={{position:"absolute",top:0,left:0,right:0,height:40,borderRadius:3,background:"linear-gradient(180deg,"+accentColor+","+accentColor+"99)",transition:"top 0.08s"}}/>
+            <div ref={bsbTrackRef} className="bsb-track" style={{width:5,flexShrink:0,margin:"4px 3px 4px 0",borderRadius:3,background:accentColor+"18",position:"relative"}}>
+              <div ref={bsbThumbRef} className="bsb-thumb" style={{position:"absolute",top:0,left:0,right:0,height:40,borderRadius:3,background:"linear-gradient(180deg,"+accentColor+","+accentColor+"99)",transition:"top 0.08s"}}/>
             </div>
           </div>
           <div style={{flexShrink:0,margin:"4px 10px 4px",background:"rgba(255,255,255,0.04)",border:"1px solid "+(accentColor)+"28",borderRadius:7,padding:"5px 9px",display:"flex",gap:6,alignItems:"center"}}>
@@ -1437,8 +1439,9 @@ function BoardView({ board, onRemove, onMoveLane, onReorder, onRankReorder, onRa
 
       {/* RANK VIEW */}
       {subView==="rank" && (
-        <div style={{flex:1,overflowY:"auto",overflowX:"hidden",padding:"10px 14px 28px"}}>
-          {/* Share button — Canvas image */}
+        <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden"}}>
+          {/* Share button — sticky at top */}
+          <div style={{flexShrink:0,padding:"10px 14px 6px"}}>
           <button onClick={()=>{
             const rowH = 68;
             const W = 580;
@@ -1537,7 +1540,9 @@ function BoardView({ board, onRemove, onMoveLane, onReorder, onRankReorder, onRa
           }} style={{width:"100%",background:"linear-gradient(135deg,#b8860b,#D4AF37,#b8860b)",border:"none",borderRadius:12,padding:"14px 0",cursor:"pointer",fontFamily:"'Source Sans 3',sans-serif",fontSize:15,fontWeight:800,color:"#000",letterSpacing:"0.06em",marginBottom:14,display:"flex",alignItems:"center",justifyContent:"center",gap:10,boxShadow:"0 4px 24px rgba(212,175,55,0.5)"}}>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{flexShrink:0}}><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg> Share My Ranked List
           </button>
-          <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:9,color:"rgba(255,255,255,0.28)",marginBottom:10,textAlign:"center",letterSpacing:"0.1em"}}>DRAG OR USE ▲▼ TO REORDER</div>
+          <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:9,color:"rgba(255,255,255,0.28)",marginBottom:6,textAlign:"center",letterSpacing:"0.1em"}}>DRAG OR USE ▲▼ TO REORDER</div>
+          </div>
+          <div style={{flex:1,overflowY:"auto",overflowX:"hidden",padding:"0 14px 28px"}}>
           {rankedSchools.map((school,idx) => {
             const lane = laneOf(school.id);
             const color = LANE_COLORS[lane];
@@ -1568,6 +1573,7 @@ function BoardView({ board, onRemove, onMoveLane, onReorder, onRankReorder, onRa
               </div>
             );
           })}
+          </div>
         </div>
       )}
     </div>
