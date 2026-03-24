@@ -1658,7 +1658,7 @@ function BoardView({ board, onRemove, onMoveLane, onReorder, onRankReorder, onRa
   );
 }
 // ─── MY COLLEGES VIEW ──────────────────────────────────────────────────────
-function MyCollegesView({ boardIds, board, myStatus, onMoveStatus, onRemoveFromBoard, onExpand, skipped, onUnskip, onUnskipAll, darkMode, notes, onNoteChange, suggestions, onJumpTo }) {
+function MyCollegesView({ boardIds, board, myStatus, onMoveStatus, onRemoveFromBoard, onExpand, skipped, onUnskip, onUnskipAll, darkMode, notes, onNoteChange, suggestions }) {
   const [localExpandId, setLocalExpandId] = useState(null);
   const getStatus = id => {
     if(myStatus.applied.includes(id)) return "applied";
@@ -2293,7 +2293,8 @@ function CollegeCards() {
         <MyCollegesView
           darkMode={darkMode}
           suggestions={suggestions}
-          onJumpTo={id=>{jumpTo(id);}}
+          notes={notes}
+          onNoteChange={(id,v)=>setNotes(n=>({...n,[id]:v}))}
           boardIds={allBoardIds}
           board={board}
           myStatus={myStatus}
