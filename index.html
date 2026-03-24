@@ -1818,10 +1818,12 @@ function CollegeCards() {
       if(e.target.tagName==="INPUT"||e.target.tagName==="TEXTAREA") return;
       const s = school;
       if(e.key==="f"||e.key==="F") { setCardFlipped(v=>!v); return; }
-      if(cardFlipped) return; // only triage shortcuts work from front
-      if((e.key==="i"||e.key==="I")&&s) { allBoardIds.includes(s.id)?removeFromBoard(s.id):markInterested(s.id); }
-      if((e.key==="m"||e.key==="M")&&s) markMaybe(s.id);
-      if((e.key==="s"||e.key==="S")&&s) markSkip(s.id);
+      if(cardFlipped) return;
+      if(!s) return;
+      const ts = allBoardIds.includes(s.id)?"interested":triage.maybe.includes(s.id)?"maybe":triage.skipped.includes(s.id)?"skipped":null;
+      if(e.key==="i"||e.key==="I") { ts==="interested"?removeFromBoard(s.id):markInterested(s.id); }
+      if(e.key==="m"||e.key==="M") markMaybe(s.id);
+      if(e.key==="s"||e.key==="S") markSkip(s.id);
     };
     window.addEventListener("keydown",ks);
     return ()=>window.removeEventListener("keydown",ks);
