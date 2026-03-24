@@ -1327,15 +1327,23 @@ function AdCard({ ad }) {
 }
 
 // ─── FULL CARD MODAL ───────────────────────────────────────────────────────
-function FullCardModal({ schoolId, onClose }) {
+function FullCardModal({ schoolId, onClose, onSkip, onMaybe, onInterested, onRemove, triageStatus }) {
   const s = SCHOOLS.find(x => x.id===schoolId);
   const [flipped, setFlipped] = React.useState(false);
   if (!s) return null;
+  const skip = onSkip || (()=>{});
+  const maybe = onMaybe || (()=>{});
+  const interested = onInterested || (()=>{});
+  const remove = onRemove || (()=>{});
   return (
     <div onClick={onClose} style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.88)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:200,padding:16}}>
       <div onClick={e=>e.stopPropagation()} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:10}}>
         <CollegeCard school={s} flipped={flipped} onFlip={setFlipped}
-          triageStatus={null} onSkip={()=>{}} onMaybe={()=>{}} onInterested={()=>{}} onRemove={()=>{}}/>
+          triageStatus={triageStatus||null}
+          onSkip={()=>{skip(s.id);}}
+          onMaybe={()=>{maybe(s.id);}}
+          onInterested={()=>{interested(s.id);}}
+          onRemove={()=>{remove(s.id);onClose();}}/>
         <button onClick={onClose} style={{background:"rgba(212,175,55,0.15)",border:"1px solid rgba(212,175,55,0.5)",borderRadius:8,padding:"7px 22px",cursor:"pointer",color:"#D4AF37",fontFamily:"'Source Sans 3',sans-serif",fontSize:11,letterSpacing:"0.1em",fontWeight:700}}>✕ Close</button>
       </div>
     </div>
@@ -1401,7 +1409,7 @@ function MiniCard({ school, lane, onRemove, onMoveLane, onExpand, isDragging, dr
   );
 }
 // ─── BOARD VIEW ────────────────────────────────────────────────────────────
-function BoardView({ board, onRemove, onMoveLane, onReorder, onRankReorder, onRankMove, darkMode, suggestions, onJumpToSuggest }) {
+function BoardView({ board, onRemove, onMoveLane, onReorder, onRankReorder, onRankMove, darkMode, suggestions, onJumpToSuggest, onSkip, onMaybe, onInterested, triage, allBoardIds }) {
   const [subView, setSubView] = useState("classify");
   const [dragging, setDragging] = useState(null);
   const [dragOver, setDragOver] = useState(null);
@@ -1438,7 +1446,9 @@ function BoardView({ board, onRemove, onMoveLane, onReorder, onRankReorder, onRa
 
   return (
     <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden",overflowX:"hidden"}}>
-      {expandId && <FullCardModal schoolId={expandId} onClose={()=>setExpandId(null)}/>}
+      {expandId && <FullCardModal schoolId={expandId} onClose={()=>setExpandId(null)}
+        triageStatus={expandId?((allBoardIds||[]).includes(expandId)?"interested":(triage?.maybe||[]).includes(expandId)?"maybe":(triage?.skipped||[]).includes(expandId)?"skipped":null):null}
+        onSkip={onSkip} onMaybe={onMaybe} onInterested={onInterested} onRemove={onRemove}/>}
 
       {/* Sub-nav */}
       <div style={{flexShrink:0,display:"flex",gap:6,padding:"10px 14px 0",alignItems:"center"}}>
@@ -1652,7 +1662,7 @@ function BoardView({ board, onRemove, onMoveLane, onReorder, onRankReorder, onRa
   );
 }
 // ─── MY COLLEGES VIEW ──────────────────────────────────────────────────────
-function MyCollegesView({ boardIds, board, myStatus, onMoveStatus, onRemoveFromBoard, onExpand, skipped, onUnskip, onUnskipAll, darkMode, notes, onNoteChange, suggestions }) {
+function MyCollegesView({ boardIds, board, myStatus, onMoveStatus, onRemoveFromBoard, onExpand, skipped, onUnskip, onUnskipAll, darkMode, notes, onNoteChange, suggestions, onSkip, onMaybe, onInterested, triage, allBoardIds }) {
   const [localExpandId, setLocalExpandId] = useState(null);
   const getStatus = id => {
     if(myStatus.applied.includes(id)) return "applied";
@@ -1681,7 +1691,9 @@ function MyCollegesView({ boardIds, board, myStatus, onMoveStatus, onRemoveFromB
   );
   return (
     <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden"}}>
-      {localExpandId && <FullCardModal schoolId={localExpandId} onClose={()=>setLocalExpandId(null)}/>}
+      {localExpandId && <FullCardModal schoolId={localExpandId} onClose={()=>setLocalExpandId(null)}
+        triageStatus={localExpandId?((allBoardIds||[]).includes(localExpandId)?"interested":(triage?.maybe||[]).includes(localExpandId)?"maybe":(triage?.skipped||[]).includes(localExpandId)?"skipped":null):null}
+        onSkip={onSkip} onMaybe={onMaybe} onInterested={onInterested} onRemove={onRemoveFromBoard}/>}
       <div style={{flex:1,overflowY:"auto",padding:"10px 12px 28px"}}>
         {buckets.map(bucket => {
           const ids = boardIds.filter(id => getStatus(id)===bucket.key);
@@ -2137,7 +2149,9 @@ function CollegeCards() {
     <div style={{width:"100%",maxWidth:430,minHeight:"100vh",maxHeight:"100vh",background:darkMode?"radial-gradient(ellipse at 55% 40%,#120808 0%,#080510 50%,#000 100%)":"linear-gradient(180deg,#f0ece4 0%,#e8e2d8 100%)",display:"flex",flexDirection:"column",overflowX:"hidden",position:"relative"}}>
       <style>{CSS}</style>
 
-      {expandId && <FullCardModal schoolId={expandId} onClose={()=>setExpandId(null)}/>}
+      {expandId && <FullCardModal schoolId={expandId} onClose={()=>setExpandId(null)}
+        triageStatus={expandId?(allBoardIds.includes(expandId)?"interested":triage.maybe.includes(expandId)?"maybe":triage.skipped.includes(expandId)?"skipped":null):null}
+        onSkip={markSkip} onMaybe={markMaybe} onInterested={markInterested} onRemove={removeFromBoard}/>}
 
       {showFeedback && (
         <div onClick={()=>setShowFeedback(false)} style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.82)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:200,padding:20}}>
@@ -2269,7 +2283,7 @@ function CollegeCards() {
 
       {view==="board" && (
         <div style={{flex:1,display:"flex",flexDirection:"column",overflowX:"hidden"}}>
-          <BoardView board={board} onRemove={removeFromBoard} onMoveLane={moveLane} onReorder={reorder} onRankReorder={rankReorder} onRankMove={rankMove} darkMode={darkMode} suggestions={suggestions} onJumpToSuggest={id=>{setSuggestReturnIdx(true);jumpTo(id);setView("browse");}}/>
+          <BoardView board={board} onRemove={removeFromBoard} onMoveLane={moveLane} onReorder={reorder} onRankReorder={rankReorder} onRankMove={rankMove} darkMode={darkMode} suggestions={suggestions} onJumpToSuggest={id=>{setSuggestReturnIdx(true);jumpTo(id);setView("browse");}} onSkip={markSkip} onMaybe={markMaybe} onInterested={markInterested} triage={triage} allBoardIds={allBoardIds}/>
         </div>
       )}
 
@@ -2279,6 +2293,8 @@ function CollegeCards() {
           suggestions={suggestions}
           notes={notes}
           onNoteChange={(id,v)=>setNotes(n=>({...n,[id]:v}))}
+          onSkip={markSkip} onMaybe={markMaybe} onInterested={markInterested}
+          triage={triage} allBoardIds={allBoardIds}
           boardIds={allBoardIds}
           board={board}
           myStatus={myStatus}
