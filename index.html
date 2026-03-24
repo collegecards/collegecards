@@ -1346,7 +1346,7 @@ function MiniCard({ school, lane, onRemove, onMoveLane, onExpand, isDragging, dr
   );
 }
 // ─── BOARD VIEW ────────────────────────────────────────────────────────────
-function BoardView({ board, onRemove, onMoveLane, onReorder, onRankReorder, onRankMove }) {
+function BoardView({ board, onRemove, onMoveLane, onReorder, onRankReorder, onRankMove, darkMode }) {
   const [subView, setSubView] = useState("classify");
   const [dragging, setDragging] = useState(null);
   const [dragOver, setDragOver] = useState(null);
@@ -2096,7 +2096,7 @@ function CollegeCards() {
 
       {view==="board" && (
         <div style={{flex:1,display:"flex",flexDirection:"column",overflowX:"hidden"}}>
-          <BoardView board={board} onRemove={removeFromBoard} onMoveLane={moveLane} onReorder={reorder} onRankReorder={rankReorder} onRankMove={rankMove}/>
+          <BoardView board={board} onRemove={removeFromBoard} onMoveLane={moveLane} onReorder={reorder} onRankReorder={rankReorder} onRankMove={rankMove} darkMode={darkMode}/>
         </div>
       )}
 
