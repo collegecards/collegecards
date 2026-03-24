@@ -738,20 +738,9 @@ function WhyNoteInput({ value, onChange, onDone, placeholder, compact }) {
 }
 
 // ─── SUGGESTION CARD ──────────────────────────────────────────────────────
-function SuggestionCard({ suggestions, onDismiss, onHide }) {
-  const [expandId, setExpandId] = React.useState(null);
-  const school = expandId ? SCHOOLS.find(s=>s.id===expandId) : null;
+function SuggestionCard({ suggestions, onDismiss, onHide, onExpand }) {
   return (
     <div className="card-scene" style={{cursor:"default"}}>
-      {school && (
-        <div onClick={()=>setExpandId(null)} style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.88)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:200,padding:16}}>
-          <div onClick={e=>e.stopPropagation()} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:10}}>
-            <CollegeCard school={school} flipped={false} onFlip={()=>{}}
-              triageStatus={null} onSkip={()=>{}} onMaybe={()=>{}} onInterested={()=>{}} onRemove={()=>{}}/>
-            <button onClick={()=>setExpandId(null)} style={{background:"rgba(212,175,55,0.15)",border:"1px solid rgba(212,175,55,0.5)",borderRadius:8,padding:"7px 22px",cursor:"pointer",color:"#D4AF37",fontFamily:"'Source Sans 3',sans-serif",fontSize:11,letterSpacing:"0.1em",fontWeight:700}}>✕ Close</button>
-          </div>
-        </div>
-      )}
       <div className="card-inner">
         <div className="card-face" style={{background:"linear-gradient(160deg,#0d0a18 0%,#16100a 60%,#0a0810 100%)",border:"2px solid rgba(212,175,55,0.5)",boxShadow:"0 22px 70px rgba(0,0,0,0.7)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"28px 22px",gap:0}}>
           <button onClick={e=>{e.stopPropagation();onHide();}} style={{position:"absolute",top:12,right:12,background:"rgba(255,255,255,0.1)",border:"1px solid rgba(255,255,255,0.3)",borderRadius:"50%",width:28,height:28,cursor:"pointer",color:"rgba(255,255,255,0.8)",fontSize:15,display:"flex",alignItems:"center",justifyContent:"center",zIndex:20}}>✕</button>
@@ -760,7 +749,7 @@ function SuggestionCard({ suggestions, onDismiss, onHide }) {
           <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:13,color:"rgba(212,175,55,0.75)",textAlign:"center",marginBottom:24,letterSpacing:"0.02em",fontWeight:600}}>Based on your interested schools</div>
           <div style={{display:"flex",flexDirection:"column",gap:10,width:"100%"}}>
             {suggestions.map(s=>(
-              <button key={s.id} onClick={e=>{e.stopPropagation();setExpandId(s.id);}} style={{display:"flex",alignItems:"center",gap:12,background:"linear-gradient(135deg,"+s.gradFrom+","+s.primaryColor+")",border:"2px solid "+(s.accentColor||"rgba(212,175,55,0.4)"),borderRadius:14,padding:"12px 16px",cursor:"pointer",textAlign:"left",boxShadow:"0 4px 20px rgba(0,0,0,0.4)"}}>
+              <button key={s.id} onClick={e=>{e.stopPropagation();onExpand(s.id);}} style={{display:"flex",alignItems:"center",gap:12,background:"linear-gradient(135deg,"+s.gradFrom+","+s.primaryColor+")",border:"2px solid "+(s.accentColor||"rgba(212,175,55,0.4)"),borderRadius:14,padding:"12px 16px",cursor:"pointer",textAlign:"left",boxShadow:"0 4px 20px rgba(0,0,0,0.4)"}}>
                 <span style={{fontSize:24,flexShrink:0}}>{s.mascot}</span>
                 <div style={{flex:1,minWidth:0}}>
                   <div style={{fontFamily:"'Playfair Display',serif",fontWeight:700,fontSize:14,color:"#fff",lineHeight:1.1}}>{s.name}</div>
@@ -2228,7 +2217,7 @@ function CollegeCards() {
             )}
             {cur?.t==="suggest" && (
               <div style={{transform:`scale(${cardScale})`,transformOrigin:"top center",width:340,height:530,marginBottom:`${530*(cardScale-1)}px`}}>
-                <SuggestionCard suggestions={cur.suggestions} onDismiss={next} onHide={()=>{setSuggestThreshold(t=>allBoardIds.length+3);next();}}/>
+                <SuggestionCard suggestions={cur.suggestions} onDismiss={next} onHide={()=>{setSuggestThreshold(t=>allBoardIds.length+3);next();}} onExpand={setExpandId}/>
               </div>
             )}
             {cur?.t==="school" && suggestReturnIdx && (
