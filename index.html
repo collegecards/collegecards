@@ -1817,7 +1817,7 @@ function CollegeCards() {
       if(view!=="browse"||showFeedback||cardFlipped) return;
       if(e.target.tagName==="INPUT"||e.target.tagName==="TEXTAREA") return;
       const s = school;
-      if(e.key==="f"||e.key==="F") setCardFlipped(true);
+      if(e.key==="f"||e.key==="F") setCardFlipped(v=>!v);
       if((e.key==="i"||e.key==="I")&&s) markInterested(s.id);
       if((e.key==="m"||e.key==="M")&&s) markMaybe(s.id);
       if((e.key==="s"||e.key==="S")&&s) markSkip(s.id);
