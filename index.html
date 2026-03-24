@@ -1407,7 +1407,7 @@ function MiniCard({ school, lane, onRemove, onMoveLane, onExpand, isDragging, dr
   );
 }
 // ─── BOARD VIEW ────────────────────────────────────────────────────────────
-function BoardView({ board, onRemove, onMoveLane, onReorder, onRankReorder, onRankMove, darkMode }) {
+function BoardView({ board, onRemove, onMoveLane, onReorder, onRankReorder, onRankMove, darkMode, suggestions, onJumpToSuggest }) {
   const [subView, setSubView] = useState("classify");
   const [dragging, setDragging] = useState(null);
   const [dragOver, setDragOver] = useState(null);
@@ -1632,6 +1632,22 @@ function BoardView({ board, onRemove, onMoveLane, onReorder, onRankReorder, onRa
               </div>
             );
           })}
+          {/* Suggested in Board */}
+          {suggestions&&suggestions.length>0&&(
+            <div style={{marginTop:16,padding:"0 0 8px"}}>
+              <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:9,fontWeight:700,letterSpacing:"0.14em",textTransform:"uppercase",color:"rgba(212,175,55,0.5)",marginBottom:10,textAlign:"center"}}>✨ You might also like</div>
+              {suggestions.map(s=>(
+                <div key={s.id} onClick={()=>onJumpToSuggest&&onJumpToSuggest(s.id)} style={{display:"flex",alignItems:"center",gap:10,background:"linear-gradient(135deg,"+s.gradFrom+","+s.primaryColor+")",border:"1px solid "+(s.accentColor+"44"),borderRadius:10,padding:"10px 13px",cursor:"pointer",marginBottom:7}}>
+                  <span style={{fontSize:20}}>{s.mascot}</span>
+                  <div style={{flex:1}}>
+                    <div style={{fontFamily:"'Playfair Display',serif",fontWeight:700,fontSize:12,color:"#fff"}}>{s.name}</div>
+                    <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:9,color:"rgba(255,255,255,0.55)",marginTop:1}}>{s.ranking} {s.rankLabel} · {s.stats.find(x=>x.label==="Acceptance Rate")?.value}</div>
+                  </div>
+                  <span style={{color:"rgba(255,255,255,0.35)",fontSize:14}}>→</span>
+                </div>
+              ))}
+            </div>
+          )}
           </div>
         </div>
       )}
@@ -1715,27 +1731,37 @@ function MyCollegesView({ boardIds, board, myStatus, onMoveStatus, onRemoveFromB
             </div>
           );
         })}
-        {/* Smart suggestions at bottom of My Schools */}
-        {(() => {
-          if(!suggestions||suggestions.length===0) return null;
-          return (
-            <div style={{marginTop:16,background:"rgba(212,175,55,0.05)",border:"1px solid rgba(212,175,55,0.2)",borderRadius:12,padding:"12px 14px"}}>
-              <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:9,fontWeight:700,letterSpacing:"0.14em",textTransform:"uppercase",color:"rgba(212,175,55,0.6)",marginBottom:10}}>✨ You might also like</div>
-              <div style={{display:"flex",flexDirection:"column",gap:8}}>
-                {suggestions.map(s=>(
-                  <div key={s.id} onClick={()=>{onJumpTo(s.id);}} style={{display:"flex",alignItems:"center",gap:10,background:"linear-gradient(135deg,"+s.gradFrom+","+s.primaryColor+")",border:"1px solid "+(s.accentColor||"rgba(212,175,55,0.3)"),borderRadius:10,padding:"9px 12px",cursor:"pointer"}}>
-                    <span style={{fontSize:20,flexShrink:0}}>{s.mascot}</span>
-                    <div style={{flex:1}}>
-                      <div style={{fontFamily:"'Playfair Display',serif",fontWeight:700,fontSize:12,color:"#fff"}}>{s.name}</div>
-                      <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:9,color:"rgba(255,255,255,0.6)",marginTop:1}}>{s.ranking} {s.rankLabel} · {s.stats.find(x=>x.label==="Acceptance Rate")?.value}</div>
-                    </div>
-                    <span style={{color:"rgba(255,255,255,0.35)",fontSize:14}}>→</span>
-                  </div>
-                ))}
-              </div>
+        {/* Suggested Schools section */}
+        {suggestions&&suggestions.length>0&&boardIds.length>=2&&(
+          <div style={{marginTop:8,marginBottom:8}}>
+            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"9px 14px",background:"rgba(212,175,55,0.08)",border:"2px solid rgba(212,175,55,0.25)",borderRadius:10,marginBottom:8}}>
+              <div style={{fontFamily:"'Source Sans 3',sans-serif",fontWeight:900,fontSize:14,color:"#D4AF37",letterSpacing:"0.04em"}}>✨ Suggested For You</div>
+              <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:10,color:"rgba(212,175,55,0.55)"}}>based on your list</div>
             </div>
-          );
-        })()}
+            <div style={{display:"flex",flexDirection:"column",gap:8}}>
+              {suggestions.map(s=>(
+                <div key={s.id} onClick={()=>onJumpTo(s.id)} style={{
+                  display:"flex",alignItems:"center",gap:10,
+                  background:"linear-gradient(135deg,"+s.gradFrom+","+s.primaryColor+")",
+                  border:"1px solid "+(s.accentColor+"55"||"rgba(212,175,55,0.3)"),
+                  borderRadius:12,padding:"11px 13px",cursor:"pointer",
+                  boxShadow:"0 3px 14px rgba(0,0,0,0.3)"
+                }}>
+                  <span style={{fontSize:22,flexShrink:0}}>{s.mascot}</span>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{fontFamily:"'Playfair Display',serif",fontWeight:700,fontSize:13,color:"#fff",lineHeight:1.1,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{s.name}</div>
+                    <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:9,color:"rgba(255,255,255,0.6)",marginTop:2}}>{s.ranking} {s.rankLabel} · {s.stats.find(x=>x.label==="Acceptance Rate")?.value} accept</div>
+                    <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:9,color:"rgba(255,220,120,0.6)",marginTop:1,fontStyle:"italic"}}>{s.claim.slice(0,45)}{s.claim.length>45?"...":""}</div>
+                  </div>
+                  <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:4,flexShrink:0}}>
+                    <span style={{color:"rgba(255,255,255,0.4)",fontSize:14}}>→</span>
+                    <span style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:7,color:"rgba(255,255,255,0.3)",letterSpacing:"0.08em"}}>VIEW</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
         {skipped&&skipped.length>0&&(
           <div style={{marginTop:8,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:10,padding:"10px 12px"}}>
             <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
@@ -2186,11 +2212,11 @@ function CollegeCards() {
             )}
             {cur?.t==="suggest" && (
               <div style={{transform:`scale(${cardScale})`,transformOrigin:"top center",width:340,height:530,marginBottom:`${530*(cardScale-1)}px`}}>
-                <SuggestionCard suggestions={cur.suggestions} onJumpTo={id=>{setSuggestReturnIdx(seqIdx);jumpTo(id);}} onDismiss={next} onHide={()=>setSuggestionDismissed(true)}/>
+                <SuggestionCard suggestions={cur.suggestions} onJumpTo={id=>{setSuggestReturnIdx(true);jumpTo(id);}} onDismiss={next} onHide={()=>setSuggestionDismissed(true)}/>
               </div>
             )}
-            {cur?.t==="school" && suggestReturnIdx!==null && (
-              <button onClick={()=>{setSeqIdx(suggestReturnIdx);setSuggestReturnIdx(null);}} style={{width:Math.round(340*cardScale),marginBottom:6,background:"rgba(212,175,55,0.12)",border:"1px solid rgba(212,175,55,0.3)",borderRadius:10,padding:"6px 14px",cursor:"pointer",fontFamily:"'Source Sans 3',sans-serif",fontSize:10,color:"#D4AF37",fontWeight:600,letterSpacing:"0.04em"}}>← Back to suggestions</button>
+            {cur?.t==="school" && suggestReturnIdx && (
+              <button onClick={()=>{const si=visibleSeq.findIndex(x=>x.t==="suggest");if(si>=0)setSeqIdx(si);setSuggestReturnIdx(null);}} style={{width:Math.round(340*cardScale),marginBottom:6,background:"rgba(212,175,55,0.12)",border:"1px solid rgba(212,175,55,0.3)",borderRadius:10,padding:"6px 14px",cursor:"pointer",fontFamily:"'Source Sans 3',sans-serif",fontSize:10,color:"#D4AF37",fontWeight:600,letterSpacing:"0.04em"}}>← Back to suggestions</button>
             )}
             {cur?.t==="school"  && (
               <div style={{transform:`scale(${cardScale})`,transformOrigin:"top center",width:340,height:530,marginBottom:`${530*(cardScale-1)}px`}}>
@@ -2240,7 +2266,7 @@ function CollegeCards() {
 
       {view==="board" && (
         <div style={{flex:1,display:"flex",flexDirection:"column",overflowX:"hidden"}}>
-          <BoardView board={board} onRemove={removeFromBoard} onMoveLane={moveLane} onReorder={reorder} onRankReorder={rankReorder} onRankMove={rankMove} darkMode={darkMode}/>
+          <BoardView board={board} onRemove={removeFromBoard} onMoveLane={moveLane} onReorder={reorder} onRankReorder={rankReorder} onRankMove={rankMove} darkMode={darkMode} suggestions={suggestions} onJumpToSuggest={id=>{setSuggestReturnIdx(true);jumpTo(id);setView("browse");}}/>
         </div>
       )}
 
