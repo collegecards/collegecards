@@ -1936,9 +1936,9 @@ function CollegeCards() {
     if(!showSuggestCard) return SEQ;
     // Insert after 8th school card
     const idx = SEQ.findIndex((x,i)=>x.t==="school"&&SEQ.slice(0,i+1).filter(y=>y.t==="school").length===8);
-    if(idx<0) return [...SEQ, {t:"suggest",suggestions:seqSuggestions}];
-    return [...SEQ.slice(0,idx+1), {t:"suggest",suggestions:seqSuggestions}, ...SEQ.slice(idx+1)];
-  }, [seqSuggestions.length, suggestionDismissed, triage.skipped.length]);
+    if(idx<0) return [...SEQ, {t:"suggest",suggestions:suggestions}];
+    return [...SEQ.slice(0,idx+1), {t:"suggest",suggestions:suggestions}, ...SEQ.slice(idx+1)];
+  }, [suggestions.length, suggestionDismissed, triage.skipped.length]);
 
   const cur = visibleSeq[seqIdx % visibleSeq.length];
   const school = cur?.t==="school" ? cur.s : null;
