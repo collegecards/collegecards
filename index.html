@@ -737,6 +737,40 @@ function WhyNoteInput({ value, onChange, onDone, placeholder, compact }) {
   return (<div ref={wrapRef} style={{display:"flex",alignItems:"flex-end",gap:8}}><textarea ref={inputRef} value={draft} onChange={e=>setDraft(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();commit();}}} placeholder={placeholder||"What stood out to you..."} rows={2} autoFocus style={{flex:1,background:"transparent",border:"none",borderBottom:"1px solid rgba(212,175,55,0.3)",padding:"6px 0",color:"rgba(255,232,160,0.9)",fontFamily:"'Source Sans 3',sans-serif",fontSize:12,fontStyle:"italic",outline:"none",resize:"none",boxSizing:"border-box",lineHeight:1.5}}/><button onMouseDown={e=>{e.preventDefault();commit();}} style={{flexShrink:0,width:30,height:30,borderRadius:"50%",background:draft.trim()?"#D4AF37":"rgba(212,175,55,0.18)",border:"none",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",marginBottom:4}}><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 12V2M7 2L3 6M7 2L11 6" stroke={draft.trim()?"#1a1000":"rgba(212,175,55,0.4)"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg></button></div>);
 }
 
+// ─── SUGGESTION CARD ──────────────────────────────────────────────────────
+function SuggestionCard({ suggestions, onJumpTo, onDismiss }) {
+  return (
+    <div className="card-scene" style={{cursor:"default"}}>
+      <div className="card-inner">
+        <div className="card-face" style={{background:"linear-gradient(160deg,#0d0a18 0%,#16100a 60%,#0a0810 100%)",border:"2px solid rgba(212,175,55,0.5)",boxShadow:"0 22px 70px rgba(0,0,0,0.7)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"28px 22px",gap:0}}>
+          <div style={{fontSize:32,marginBottom:12}}>✨</div>
+          <div style={{fontFamily:"'Playfair Display',serif",fontWeight:900,fontSize:20,color:"#fff",textAlign:"center",marginBottom:6}}>You might also like</div>
+          <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:11,color:"rgba(212,175,55,0.6)",textAlign:"center",marginBottom:24,letterSpacing:"0.04em"}}>Based on your interested schools</div>
+          <div style={{display:"flex",flexDirection:"column",gap:10,width:"100%"}}>
+            {suggestions.map(s=>(
+              <button key={s.id} onClick={()=>onJumpTo(s.id)} style={{
+                display:"flex",alignItems:"center",gap:12,
+                background:"linear-gradient(135deg,"+s.gradFrom+","+s.primaryColor+")",
+                border:"2px solid "+(s.accentColor||"rgba(212,175,55,0.4)"),
+                borderRadius:14,padding:"12px 16px",cursor:"pointer",textAlign:"left",
+                boxShadow:"0 4px 20px rgba(0,0,0,0.4)"
+              }}>
+                <span style={{fontSize:24,flexShrink:0}}>{s.mascot}</span>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{fontFamily:"'Playfair Display',serif",fontWeight:700,fontSize:14,color:"#fff",lineHeight:1.1}}>{s.name}</div>
+                  <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:10,color:"rgba(255,255,255,0.65)",marginTop:3}}>{s.ranking} {s.rankLabel} · {s.stats.find(x=>x.label==="Acceptance Rate")?.value} accept</div>
+                </div>
+                <span style={{color:"rgba(255,255,255,0.4)",fontSize:16,flexShrink:0}}>→</span>
+              </button>
+            ))}
+          </div>
+          <button onClick={onDismiss} style={{marginTop:20,background:"transparent",border:"none",cursor:"pointer",fontFamily:"'Source Sans 3',sans-serif",fontSize:10,color:"rgba(255,255,255,0.3)",letterSpacing:"0.06em"}}>Keep browsing →</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function CollegeCard({ school, flipped, onFlip, triageStatus, onSkip, onMaybe, onInterested, onRemove }) {
   const [photoIdx, setPhotoIdx] = useState(0);
   const [fading, setFading] = useState(false);
@@ -779,22 +813,22 @@ function CollegeCard({ school, flipped, onFlip, triageStatus, onSkip, onMaybe, o
   };
 
   const doShare = e => {
-    e.stopPropagation();
+    if(e) e.stopPropagation();
     track("school_shared", { school_id: school.id, school_name: school.name });
-    const txt = school.name + " | " + school.ranking + " " + school.rankLabel +
-      " | Accept: " + (school.stats.find(s=>s.label==="Acceptance Rate")?.value||"") +
-      " | " + (school.stats.find(s=>s.label==="Tuition (Full)")?.value||"") +
-      " | collegecards.app";
+    const url = "https://www.collegecards.app?school=" + school.id;
+    const txt = "Check out " + school.name + " on CollegeCards! " +
+      school.ranking + " " + school.rankLabel + " · " +
+      (school.stats.find(s=>s.label==="Acceptance Rate")?.value||"") + " acceptance\n" + url;
     const copyFallback = () => {
       const ta = document.createElement("textarea");
       ta.value = txt; ta.style.cssText = "position:fixed;top:0;left:0;opacity:0;";
       document.body.appendChild(ta); ta.focus(); ta.select();
       try { document.execCommand("copy"); setShareMsg("Copied!"); }
-      catch(e) { setShareMsg("Copy failed"); }
+      catch(e2) { setShareMsg("Copy failed"); }
       document.body.removeChild(ta);
       setTimeout(() => setShareMsg(""), 2200);
     };
-    if(navigator.share) { navigator.share({title:school.name,text:txt}).catch(copyFallback); }
+    if(navigator.share) { navigator.share({title:school.name, text:txt, url}).catch(copyFallback); }
     else { copyFallback(); }
   };
 
@@ -878,11 +912,16 @@ function CollegeCard({ school, flipped, onFlip, triageStatus, onSkip, onMaybe, o
             <div style={{fontFamily:"'Source Sans 3',sans-serif",fontWeight:700,fontSize:7,letterSpacing:"0.07em",textTransform:"uppercase",opacity:0.75,marginTop:2}}>{school.rankLabel}</div>
           </div>
 
-          {/* Dots */}
-          <div style={{position:"absolute",top:14,right:10,display:"flex",gap:5,zIndex:4}}>
-            {school.scenes.map((_,i)=>(
-              <div key={i} onClick={e=>{e.stopPropagation();setPhotoIdx(i);}} style={{width:7,height:7,borderRadius:"50%",background:i===photoIdx?"#e2bb47":"rgba(255,255,255,0.3)",cursor:"pointer"}}/>
-            ))}
+          {/* Share + Dots */}
+          <div style={{position:"absolute",top:10,right:10,display:"flex",flexDirection:"column",alignItems:"flex-end",gap:8,zIndex:4}}>
+            <button onClick={e=>{e.stopPropagation();doShare(e);}} style={{background:"rgba(0,0,0,0.35)",border:"1px solid rgba(255,255,255,0.25)",borderRadius:8,width:28,height:28,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer"}}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.85)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+            </button>
+            <div style={{display:"flex",gap:5}}>
+              {school.scenes.map((_,i)=>(
+                <div key={i} onClick={e=>{e.stopPropagation();setPhotoIdx(i);}} style={{width:7,height:7,borderRadius:"50%",background:i===photoIdx?"#e2bb47":"rgba(255,255,255,0.3)",cursor:"pointer"}}/>
+              ))}
+            </div>
           </div>
 
           {/* Flip zone - upper portion of card */}
@@ -1675,6 +1714,27 @@ function MyCollegesView({ boardIds, board, myStatus, onMoveStatus, onRemoveFromB
             </div>
           );
         })}
+        {/* Smart suggestions at bottom of My Schools */}
+        {(() => {
+          if(!suggestions||suggestions.length===0) return null;
+          return (
+            <div style={{marginTop:16,background:"rgba(212,175,55,0.05)",border:"1px solid rgba(212,175,55,0.2)",borderRadius:12,padding:"12px 14px"}}>
+              <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:9,fontWeight:700,letterSpacing:"0.14em",textTransform:"uppercase",color:"rgba(212,175,55,0.6)",marginBottom:10}}>✨ You might also like</div>
+              <div style={{display:"flex",flexDirection:"column",gap:8}}>
+                {suggestions.map(s=>(
+                  <div key={s.id} onClick={()=>{onJumpTo(s.id);}} style={{display:"flex",alignItems:"center",gap:10,background:"linear-gradient(135deg,"+s.gradFrom+","+s.primaryColor+")",border:"1px solid "+(s.accentColor||"rgba(212,175,55,0.3)"),borderRadius:10,padding:"9px 12px",cursor:"pointer"}}>
+                    <span style={{fontSize:20,flexShrink:0}}>{s.mascot}</span>
+                    <div style={{flex:1}}>
+                      <div style={{fontFamily:"'Playfair Display',serif",fontWeight:700,fontSize:12,color:"#fff"}}>{s.name}</div>
+                      <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:9,color:"rgba(255,255,255,0.6)",marginTop:1}}>{s.ranking} {s.rankLabel} · {s.stats.find(x=>x.label==="Acceptance Rate")?.value}</div>
+                    </div>
+                    <span style={{color:"rgba(255,255,255,0.35)",fontSize:14}}>→</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
         {skipped&&skipped.length>0&&(
           <div style={{marginTop:8,background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:10,padding:"10px 12px"}}>
             <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
@@ -1704,6 +1764,35 @@ function track(event, props={}) {
       window.posthog.capture(event, props);
     }
   } catch(e) {}
+}
+
+// ─── SMART SUGGESTIONS ────────────────────────────────────────────────────
+function getSuggestions(interestedIds, allBoardIds, skippedIds) {
+  if(interestedIds.length < 2) return [];
+  const interested = interestedIds.map(id=>SCHOOLS.find(s=>s.id===id)).filter(Boolean);
+  const getAccept = s => parseInt((s.stats.find(x=>x.label==="Acceptance Rate")?.value||"50").replace(/[^0-9]/g,""));
+  const getRegion = s => {
+    const loc = s.stats.find(x=>x.label==="Location")?.value||"";
+    if(["MA","NH","VT","CT","RI","NY","NJ","PA","ME"].some(st=>loc.includes(st))) return "Northeast";
+    if(["TN","NC","VA","GA","FL"].some(st=>loc.includes(st))) return "South";
+    if(["OH","IN","IL","MI","WI"].some(st=>loc.includes(st))) return "Midwest";
+    return "West";
+  };
+  const avgAccept = Math.round(interested.reduce((a,s)=>a+getAccept(s),0)/interested.length);
+  const regions = interested.map(getRegion);
+  const topRegion = regions.sort((a,b)=>regions.filter(r=>r===b).length-regions.filter(r=>r===a).length)[0];
+  const topVibe = interested[0]?.vibes?.reduce((a,v)=>v.value>a.value?v:a,{value:0})?.label;
+  const seen = new Set([...allBoardIds, ...skippedIds]);
+  const candidates = SCHOOLS.filter(s=>!seen.has(s.id)).map(s=>{
+    let score = 0;
+    const acc = getAccept(s);
+    if(Math.abs(acc-avgAccept)<=15) score+=3;
+    else if(Math.abs(acc-avgAccept)<=25) score+=1;
+    if(getRegion(s)===topRegion) score+=2;
+    if(topVibe) { const v=s.vibes.find(v=>v.label===topVibe); if(v&&v.value>=4) score+=2; }
+    return {s, score};
+  }).filter(x=>x.score>=2).sort((a,b)=>b.score-a.score);
+  return candidates.slice(0,3).map(x=>x.s);
 }
 
 function CollegeCards() {
@@ -1795,7 +1884,15 @@ function CollegeCards() {
 
   const allBoardIds = [...board.reach,...board.match,...board.safety,...board.undecided];
 
-  const visibleSeq = SEQ;
+  // Inject suggestion card after every 5th interested school
+  const suggestions = allBoardIds.length>=2 ? getSuggestions(allBoardIds, allBoardIds, triage.skipped) : [];
+  const visibleSeq = React.useMemo(() => {
+    if(suggestions.length===0) return SEQ;
+    // Insert after 8th school card
+    const idx = SEQ.findIndex((x,i)=>x.t==="school"&&SEQ.slice(0,i+1).filter(y=>y.t==="school").length===8);
+    if(idx<0) return [...SEQ, {t:"suggest",suggestions}];
+    return [...SEQ.slice(0,idx+1), {t:"suggest",suggestions}, ...SEQ.slice(idx+1)];
+  }, [allBoardIds.length, triage.skipped.length]);
 
   const cur = visibleSeq[seqIdx % visibleSeq.length];
   const school = cur?.t==="school" ? cur.s : null;
@@ -2073,6 +2170,11 @@ function CollegeCards() {
                 <AdCard ad={cur.ad}/>
               </div>
             )}
+            {cur?.t==="suggest" && (
+              <div style={{transform:`scale(${cardScale})`,transformOrigin:"top center",width:340,height:530,marginBottom:`${530*(cardScale-1)}px`}}>
+                <SuggestionCard suggestions={cur.suggestions} onJumpTo={id=>{jumpTo(id);}} onDismiss={next}/>
+              </div>
+            )}
             {cur?.t==="school"  && (
               <div style={{transform:`scale(${cardScale})`,transformOrigin:"top center",width:340,height:530,marginBottom:`${530*(cardScale-1)}px`}}>
                 <CollegeCard key={school.id} school={school} flipped={cardFlipped} onFlip={setCardFlipped}
@@ -2128,6 +2230,8 @@ function CollegeCards() {
       {view==="my" && (
         <MyCollegesView
           darkMode={darkMode}
+          suggestions={suggestions}
+          onJumpTo={id=>{jumpTo(id);setView("browse");}}
           boardIds={allBoardIds}
           board={board}
           myStatus={myStatus}
