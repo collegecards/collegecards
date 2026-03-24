@@ -1733,6 +1733,8 @@ function CollegeCards() {
   const [fbText, setFbText] = useState("");
   const [fbSent, setFbSent] = useState(false);
   const touchStart = useRef(null);
+  const liveRef = useRef({});
+  useEffect(() => { liveRef.current = {triage, allBoardIds, school, cardFlipped, view, showFeedback}; });
   const touchStartY = useRef(null);
   const sessionViews = useRef(0); // cards viewed this session
   const sessionTriaged = useRef(0); // schools triaged this session
@@ -1814,20 +1816,19 @@ function CollegeCards() {
 
   useEffect(() => {
     const ks = e => {
-      if(view!=="browse"||showFeedback) return;
+      const {triage:tr, allBoardIds:ab, school:s, cardFlipped:cf, view:v, showFeedback:sf} = liveRef.current;
+      if(v!=="browse"||sf) return;
       if(e.target.tagName==="INPUT"||e.target.tagName==="TEXTAREA") return;
-      const s = school;
-      if(e.key==="f"||e.key==="F") { setCardFlipped(v=>!v); return; }
-      if(cardFlipped) return;
-      if(!s) return;
-      const ts = allBoardIds.includes(s.id)?"interested":triage.maybe.includes(s.id)?"maybe":triage.skipped.includes(s.id)?"skipped":null;
+      if(e.key==="f"||e.key==="F") { setCardFlipped(x=>!x); return; }
+      if(cf||!s) return;
+      const ts = ab.includes(s.id)?"interested":tr.maybe.includes(s.id)?"maybe":tr.skipped.includes(s.id)?"skipped":null;
       if(e.key==="i"||e.key==="I") { ts==="interested"?removeFromBoard(s.id):markInterested(s.id); }
       if(e.key==="m"||e.key==="M") markMaybe(s.id);
       if(e.key==="s"||e.key==="S") markSkip(s.id);
     };
     window.addEventListener("keydown",ks);
     return ()=>window.removeEventListener("keydown",ks);
-  }, [view,showFeedback,cardFlipped,school]);
+  }, []);
 
   // Triage actions
   const markInterested = id => {
