@@ -994,8 +994,27 @@ function CollegeCard({ school, flipped, onFlip, triageStatus, onSkip, onMaybe, o
               );
             })}
             </div>
-            <div ref={bsbTrackRef} className="bsb-track" style={{width:5,flexShrink:0,margin:"4px 3px 4px 0",borderRadius:3,background:accentColor+"18",position:"relative"}}>
-              <div ref={bsbThumbRef} className="bsb-thumb" style={{position:"absolute",top:0,left:0,right:0,height:40,borderRadius:3,background:"linear-gradient(180deg,"+accentColor+","+accentColor+"99)",transition:"top 0.08s"}}/>
+            <div ref={bsbTrackRef} onClick={e=>e.stopPropagation()} onMouseDown={e=>{
+              e.stopPropagation();
+              e.preventDefault();
+              const el=backScrollRef.current;
+              const track=bsbTrackRef.current;
+              if(!el||!track) return;
+              const startY=e.clientY;
+              const startTop=el.scrollTop;
+              const trackH=track.clientHeight;
+              const thumbH=Math.max(24,trackH*(el.clientHeight/el.scrollHeight));
+              const maxScroll=el.scrollHeight-el.clientHeight;
+              const onMove=mv=>{
+                const dy=mv.clientY-startY;
+                const ratio=dy/(trackH-thumbH);
+                el.scrollTop=Math.max(0,Math.min(maxScroll,startTop+ratio*maxScroll));
+              };
+              const onUp=()=>{ window.removeEventListener('mousemove',onMove); window.removeEventListener('mouseup',onUp); };
+              window.addEventListener('mousemove',onMove);
+              window.addEventListener('mouseup',onUp);
+            }} className="bsb-track" style={{width:10,flexShrink:0,margin:"4px 2px 4px 0",borderRadius:4,background:accentColor+"18",position:"relative",cursor:"pointer"}}>
+              <div ref={bsbThumbRef} onClick={e=>e.stopPropagation()} className="bsb-thumb" style={{position:"absolute",top:0,left:1,right:1,height:40,borderRadius:4,background:"linear-gradient(180deg,"+accentColor+","+accentColor+"99)",transition:"top 0.08s",cursor:"grab"}}/>
             </div>
           </div>
           <div style={{flexShrink:0,margin:"4px 10px 4px",background:"rgba(255,255,255,0.04)",border:"1px solid "+(accentColor)+"28",borderRadius:7,padding:"5px 9px",display:"flex",gap:6,alignItems:"center"}}>
