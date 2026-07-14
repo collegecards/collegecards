@@ -8,13 +8,28 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🃏</text></svg>"/>
   <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.23.10/babel.min.js"></script>
   <style>*{box-sizing:border-box}body{margin:0;background:#000}</style>
 </head>
 <body>
   <div id="root"></div>
-  <script type="text/babel" data-presets="react">
-const { useState, useEffect, useRef } = React;
+  <script type="text/babel" data-presets="react" data-plugins="transform-react-jsx">
+const { useState, useEffect, useRef, useMemo } = React;
+
+// ─── PHOTO SCENE HELPER ────────────────────────────────────────────────────
+function photoScene(url, caption) {
+  return {
+    caption,
+    isPhoto: true,
+    scene: () => (
+      <img src={url} alt={caption}
+        style={{width:"100%",height:"100%",objectFit:"cover",objectPosition:"center 25%",display:"block"}}
+        loading="lazy"
+      />
+    )
+  };
+}
+
 
 // ─── CUSTOM SVG SCENES (BC, Union, Colgate, Columbia, Lehigh) ─────────────
 const bcScenes = [
@@ -469,20 +484,6 @@ const lehighScenes = [
   )},
 ];
 
-
-// ─── PHOTO SCENE HELPER ────────────────────────────────────────────────────
-function photoScene(url, caption) {
-  return {
-    caption,
-    isPhoto: true,
-    scene: () => (
-      <img src={url} alt={caption}
-        style={{width:"100%",height:"100%",objectFit:"cover",objectPosition:"center 25%",display:"block"}}
-        loading="lazy"
-      />
-    )
-  };
-}
 
 // ─── PARAMETERIZED SCENE GENERATOR ────────────────────────────────────────
 function makeScene1(uid, skyNight, bldColor, accentWin, label) {
