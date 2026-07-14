@@ -2886,17 +2886,17 @@ function CollegeCards() {
   );
 
   const photoCards = [
-    { photoUrl:"https://commons.wikimedia.org/wiki/Special:FilePath/Harvard_University_Widener_Library.jpg?width=400",
+    { photoUrl:"https://images.pexels.com/photos/18137345/pexels-photo-18137345.jpeg?auto=compress&cs=tinysrgb&w=400",
       name:"HARVARD UNIVERSITY", subtitle:"📚 CRIMSON · CAMBRIDGE, MA", ranking:"#3", rankLabel:"NAT'L UNIV.",
       primaryColor:"#A51C30", gradFrom:"#7a0e1e", accentColor:"#D4AF37",
       vibes:[{label:"Academics",v:5},{label:"Social Scene",v:3},{label:"Campus Beauty",v:5}],
       rotate:-6, offsetX:-22, offsetY:18, zIndex:0, isMain:false },
-    { photoUrl:"https://commons.wikimedia.org/wiki/Special:FilePath/Boston_College_Adlersaeule_Gasson_Hall_NW_9355_20190426.jpg?width=400",
+    { photoUrl:"https://images.pexels.com/photos/18668992/pexels-photo-18668992.jpeg?auto=compress&cs=tinysrgb&w=400",
       name:"BOSTON COLLEGE", subtitle:"🦅 EAGLES · CHESTNUT HILL, MA", ranking:"#36", rankLabel:"NAT'L UNIV.",
       primaryColor:"#8B1A1A", gradFrom:"#6B0F1A", accentColor:"#D4AF37",
       vibes:[{label:"School Spirit",v:5},{label:"Academics",v:4},{label:"Campus Beauty",v:5}],
       rotate:4, offsetX:0, offsetY:0, zIndex:2, isMain:true },
-    { photoUrl:"https://commons.wikimedia.org/wiki/Special:FilePath/Princeton_University_-_Nassau_Hall_(28319503622).jpg?width=400",
+    { photoUrl:"https://images.pexels.com/photos/16361673/pexels-photo-16361673.jpeg?auto=compress&cs=tinysrgb&w=400",
       name:"PRINCETON UNIVERSITY", subtitle:"🐯 TIGERS · PRINCETON, NJ", ranking:"#1", rankLabel:"NAT'L UNIV.",
       primaryColor:"#E87722", gradFrom:"#b85510", accentColor:"#FFB347",
       vibes:[{label:"Academics",v:5},{label:"Campus Beauty",v:5},{label:"School Spirit",v:4}],
@@ -3066,11 +3066,11 @@ function CollegeCards() {
       )}
 
       {/* SLIM TOP BAR */}
-      <div style={{flexShrink:0,display:"flex",alignItems:"center",justifyContent:"space-between",padding:"7px 10px",borderBottom:"1px solid "+(darkMode?"rgba(255,255,255,0.07)":"rgba(0,0,0,0.1)")}}>
-        <div style={{fontFamily:"'Playfair Display',serif",fontWeight:900,fontSize:20,color:darkMode?"#fff":"#1a1208",letterSpacing:"0.04em",cursor:"pointer",flexShrink:0}} onClick={()=>{setSeqIdx(0);setView("browse");}}>
+      <div style={{flexShrink:0,display:"flex",alignItems:"center",justifyContent:"space-between",padding:"7px 8px",borderBottom:"1px solid "+(darkMode?"rgba(255,255,255,0.07)":"rgba(0,0,0,0.1)"),overflow:"hidden"}}>
+        <div style={{fontFamily:"'Playfair Display',serif",fontWeight:900,fontSize:18,color:darkMode?"#fff":"#1a1208",letterSpacing:"0.03em",cursor:"pointer",flexShrink:0}} onClick={()=>{setSeqIdx(0);setView("browse");}}>
           College<span style={{color:"#D4AF37"}}>Cards</span>
         </div>
-        <div style={{display:"flex",alignItems:"center",gap:8,flexShrink:0}}>
+        <div style={{display:"flex",alignItems:"center",gap:5,flexShrink:0,minWidth:0}}>
           <button onClick={()=>{const idx=visibleSeq.findIndex(x=>x.t==="search");if(idx>=0)setSeqIdx(idx);setView("browse");}}
             style={{background:"rgba(212,175,55,0.12)",border:"1.5px solid rgba(212,175,55,0.5)",borderRadius:20,padding:"6px 11px",cursor:"pointer",fontFamily:"'Source Sans 3',sans-serif",fontSize:11,color:"#D4AF37",fontWeight:600,display:"flex",alignItems:"center",gap:4,flexShrink:0,whiteSpace:"nowrap"}}>
             🔍 Search
@@ -3090,7 +3090,7 @@ function CollegeCards() {
               <span style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:8,color:view==="my"?"#D4AF37":darkMode?"rgba(255,255,255,0.4)":"rgba(0,0,0,0.5)",fontWeight:700,letterSpacing:"0.04em"}}>MY SCHOOLS</span>
             </div>
           </div>
-          <div style={{display:"flex",alignItems:"center",gap:6,flexShrink:0}}>
+          <div style={{display:"flex",alignItems:"center",gap:5,flexShrink:0}}>
             <button onClick={()=>setDarkMode(d=>!d)} style={{background:darkMode?"rgba(255,255,255,0.08)":"rgba(0,0,0,0.08)",border:"1px solid "+(darkMode?"rgba(255,255,255,0.18)":"rgba(0,0,0,0.18)"),borderRadius:18,padding:"5px 9px",cursor:"pointer",fontSize:14,flexShrink:0,lineHeight:1,boxShadow:darkMode?"none":"0 1px 3px rgba(0,0,0,0.12)"}}>{ darkMode?"☀️":"🌙"}</button>
             {fbUser && (
               <div style={{position:"relative"}} >
