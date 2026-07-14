@@ -2885,10 +2885,10 @@ function CollegeCards() {
   );
 
   const photoCards = [
-    { photoUrl:"https://images.pexels.com/photos/18137345/pexels-photo-18137345.jpeg?auto=compress&cs=tinysrgb&w=400",
-      name:"HARVARD UNIVERSITY", subtitle:"📚 CRIMSON · CAMBRIDGE, MA", ranking:"#3", rankLabel:"NAT'L UNIV.",
-      primaryColor:"#A51C30", gradFrom:"#7a0e1e", accentColor:"#D4AF37",
-      vibes:[{label:"Academics",v:5},{label:"Social Scene",v:3},{label:"Campus Beauty",v:5}],
+    { photoUrl:"https://images.pexels.com/photos/11250195/pexels-photo-11250195.jpeg?auto=compress&cs=tinysrgb&w=400",
+      name:"COLUMBIA UNIVERSITY", subtitle:"🦁 LIONS · NEW YORK, NY", ranking:"#15", rankLabel:"NAT'L UNIV.",
+      primaryColor:"#1B4F8A", gradFrom:"#0e2d52", accentColor:"#75B2DD",
+      vibes:[{label:"Academics",v:5},{label:"Social Scene",v:4},{label:"Campus Beauty",v:4}],
       rotate:-6, offsetX:-22, offsetY:18, zIndex:0, isMain:false },
     { photoUrl:"https://images.pexels.com/photos/18668992/pexels-photo-18668992.jpeg?auto=compress&cs=tinysrgb&w=400",
       name:"BOSTON COLLEGE", subtitle:"🦅 EAGLES · CHESTNUT HILL, MA", ranking:"#36", rankLabel:"NAT'L UNIV.",
@@ -3071,8 +3071,8 @@ function CollegeCards() {
         </div>
         <div style={{display:"flex",alignItems:"center",gap:5,flexShrink:0,minWidth:0}}>
           <button onClick={()=>{const idx=visibleSeq.findIndex(x=>x.t==="search");if(idx>=0)setSeqIdx(idx);setView("browse");}}
-            style={{background:"rgba(212,175,55,0.12)",border:"1.5px solid rgba(212,175,55,0.5)",borderRadius:20,padding:"5px 9px",cursor:"pointer",fontFamily:"'Source Sans 3',sans-serif",fontSize:10,color:"#D4AF37",fontWeight:600,display:"flex",alignItems:"center",gap:3,flexShrink:0,whiteSpace:"nowrap"}}>
-            🔍 Search
+            style={{background:"rgba(212,175,55,0.12)",border:"1.5px solid rgba(212,175,55,0.5)",borderRadius:20,padding:"5px 8px",cursor:"pointer",fontFamily:"'Source Sans 3',sans-serif",fontSize:10,color:"#D4AF37",fontWeight:600,display:"flex",alignItems:"center",gap:3,flexShrink:0,whiteSpace:"nowrap"}}>
+            🔍
           </button>
           <div style={{display:"flex",gap:8,alignItems:"flex-start"}}>
             <div onClick={()=>setView("browse")} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2,cursor:"pointer"}}>
@@ -3103,7 +3103,7 @@ function CollegeCards() {
                   }
                 </div>
                 {showUserMenu && (
-                  <div style={{position:"absolute",top:"calc(100% + 6px)",right:0,background:"#1a1208",border:"1px solid rgba(212,175,55,0.25)",borderRadius:10,padding:6,minWidth:160,zIndex:999,boxShadow:"0 8px 24px rgba(0,0,0,0.6)"}}>
+                  <div style={{position:"fixed",top:60,right:8,background:"#1a1208",border:"1px solid rgba(212,175,55,0.25)",borderRadius:10,padding:6,minWidth:160,zIndex:9999,boxShadow:"0 8px 24px rgba(0,0,0,0.6)"}}>
                     <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:11,color:"rgba(255,255,255,0.45)",padding:"4px 8px 6px",borderBottom:"1px solid rgba(255,255,255,0.08)",marginBottom:4,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{fbUser.email}</div>
                     <button onClick={()=>{signOut();setShowUserMenu(false);}} style={{width:"100%",background:"none",border:"none",cursor:"pointer",fontFamily:"'Source Sans 3',sans-serif",fontSize:12,color:"rgba(255,120,120,0.85)",padding:"6px 8px",textAlign:"left",borderRadius:6}}>Sign out</button>
                   </div>
