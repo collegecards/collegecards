@@ -2419,6 +2419,7 @@ function CollegeCards() {
   const [view, setView] = useState("browse");
   const [seqIdx, setSeqIdx] = useState(0);
   const [guestMode, setGuestMode] = useState(() => { try{return !!localStorage.getItem("cc_guest");}catch(e){return false;} });
+  const [showUserMenu, setShowUserMenu] = useState(false);
   const [cardFlipped, setCardFlipped] = useState(false);
 
   // Responsive card — fills mobile viewport, desktop stays at 1x
@@ -2509,6 +2510,13 @@ function CollegeCards() {
       await window._fbDb.collection("users").doc(uid).set(data, { merge: true });
     } catch(e) { console.error("Firestore save error:", e); }
   };
+
+  // Close user menu on outside click
+  useEffect(() => {
+    const handler = () => setShowUserMenu(false);
+    if (showUserMenu) document.addEventListener("click", handler);
+    return () => document.removeEventListener("click", handler);
+  }, [showUserMenu]);
 
   // Auth state listener
   useEffect(() => {
@@ -2841,63 +2849,59 @@ function CollegeCards() {
     </svg>
   );
 
-  // Mini BC card preview for welcome screen
-  const MiniCard = () => (
+  // Welcome screen photo cards
+  const WelcomeCard = ({photoUrl, name, subtitle, ranking, rankLabel, primaryColor, gradFrom, accentColor, vibes, rotate, offsetX, offsetY, zIndex, isMain}) => (
     <div style={{
-      width:200,height:290,borderRadius:16,overflow:"hidden",
-      border:"2px solid rgba(212,175,55,0.5)",
-      boxShadow:"0 24px 60px rgba(0,0,0,0.7),0 0 40px rgba(139,26,26,0.3)",
-      position:"relative",flexShrink:0,
-      transform:"rotate(4deg)",
-      background:"#6B0F1A",
+      width:190,height:276,borderRadius:15,overflow:"hidden",
+      border:"2px solid rgba(212,175,55,"+(isMain?"0.55":"0.25")+")",
+      boxShadow:isMain?"0 24px 60px rgba(0,0,0,0.75),0 0 50px rgba(0,0,0,0.4)":"0 12px 40px rgba(0,0,0,0.6)",
+      position:"absolute",
+      transform:"rotate("+rotate+"deg) translateX("+offsetX+"px) translateY("+offsetY+"px)",
+      background:gradFrom,
+      zIndex:zIndex,
     }}>
-      {/* Eagle photo */}
-      <img src="https://commons.wikimedia.org/wiki/Special:FilePath/Boston_College_Adlersaeule_Gasson_Hall_NW_9355_20190426.jpg?width=400"
-        style={{position:"absolute",top:0,left:0,width:"100%",height:"68%",objectFit:"cover",objectPosition:"center 20%"}}
+      <img src={photoUrl} style={{position:"absolute",top:0,left:0,width:"100%",height:"65%",objectFit:"cover",objectPosition:"center 20%"}}
         onError={e=>{e.target.style.display="none";}}/>
-      {/* Gradient overlay */}
-      <div style={{position:"absolute",inset:0,background:"linear-gradient(180deg,rgba(0,0,0,0) 30%,rgba(107,15,26,0.85) 55%,#6B0F1A 72%)"}}/>
-      {/* Rank badge */}
-      <div style={{position:"absolute",top:8,left:8,background:"linear-gradient(180deg,#e4bd47,#cfa533)",borderRadius:6,padding:"3px 7px"}}>
-        <div style={{fontFamily:"'Source Sans 3',sans-serif",fontWeight:800,fontSize:11,color:"#2f230d"}}>#36</div>
-        <div style={{fontFamily:"'Source Sans 3',sans-serif",fontWeight:700,fontSize:6,color:"#2f230d",letterSpacing:"0.06em"}}>NAT&apos;L UNIV.</div>
+      <div style={{position:"absolute",inset:0,background:"linear-gradient(180deg,rgba(0,0,0,0) 28%,"+gradFrom+"cc 52%,"+gradFrom+" 68%)"}}/>
+      <div style={{position:"absolute",top:7,left:7,background:"linear-gradient(180deg,#e4bd47,#cfa533)",borderRadius:5,padding:"2px 6px"}}>
+        <div style={{fontFamily:"'Source Sans 3',sans-serif",fontWeight:800,fontSize:10,color:"#2f230d"}}>{ranking}</div>
+        <div style={{fontFamily:"'Source Sans 3',sans-serif",fontWeight:700,fontSize:5,color:"#2f230d",letterSpacing:"0.06em"}}>{rankLabel}</div>
       </div>
-      {/* Info */}
-      <div style={{position:"absolute",bottom:0,left:0,right:0,padding:"0 10px 10px"}}>
-        <div style={{fontFamily:"'Playfair Display',serif",fontWeight:700,fontSize:15,color:"#FFF7ED",lineHeight:1.1,marginBottom:2}}>BOSTON COLLEGE</div>
-        <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:8,color:"#F3D06A",marginBottom:6}}>🦅 EAGLES · CHESTNUT HILL, MA</div>
-        {[{label:"School Spirit",v:5},{label:"Academics",v:4},{label:"Campus Beauty",v:5}].map(({label,v})=>(
-          <div key={label} style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:3}}>
-            <span style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:7,color:"rgba(255,243,230,0.85)"}}>{label}</span>
+      <div style={{position:"absolute",bottom:0,left:0,right:0,padding:"0 9px 9px"}}>
+        <div style={{fontFamily:"'Playfair Display',serif",fontWeight:700,fontSize:13,color:"#FFF7ED",lineHeight:1.1,marginBottom:2}}>{name}</div>
+        <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:7,color:accentColor,marginBottom:5}}>{subtitle}</div>
+        {vibes.map(({label,v})=>(
+          <div key={label} style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:2}}>
+            <span style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:6.5,color:"rgba(255,243,230,0.8)"}}>{label}</span>
             <div style={{display:"flex",gap:2}}>
               {[1,2,3,4,5].map(i=>(
-                <div key={i} style={{width:14,height:5,borderRadius:999,background:i<=v?"linear-gradient(180deg,#f8e38f,#cc9828)":"rgba(255,255,255,0.15)"}}/>
+                <div key={i} style={{width:12,height:4,borderRadius:999,background:i<=v?"linear-gradient(180deg,#f8e38f,#cc9828)":"rgba(255,255,255,0.15)"}}/>
               ))}
             </div>
           </div>
         ))}
       </div>
-      {/* Shine */}
       <div style={{position:"absolute",inset:0,background:"linear-gradient(135deg,transparent 40%,rgba(255,255,255,0.04) 50%,transparent 60%)",pointerEvents:"none"}}/>
     </div>
   );
 
-  const SecondCard = () => (
-    <div style={{
-      width:200,height:290,borderRadius:16,overflow:"hidden",
-      border:"2px solid rgba(212,175,55,0.35)",
-      boxShadow:"0 24px 60px rgba(0,0,0,0.7)",
-      position:"absolute",
-      transform:"rotate(-3deg) translateX(-20px) translateY(10px)",
-      background:"#001540",zIndex:0,
-    }}>
-      <div style={{position:"absolute",inset:0,background:"linear-gradient(160deg,#001540,#002244)"}}/>
-      <div style={{position:"absolute",bottom:20,left:10,right:10}}>
-        <div style={{fontFamily:"'Playfair Display',serif",fontWeight:700,fontSize:15,color:"#FFF7ED"}}>YALE UNIVERSITY</div>
-        <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:8,color:"#75B2DD",marginTop:2}}>🐶 BULLDOGS · NEW HAVEN, CT</div>
-      </div>
-    </div>
-  );
+  const photoCards = [
+    { photoUrl:"https://commons.wikimedia.org/wiki/Special:FilePath/Harvard_University_Widener_Library.jpg?width=400",
+      name:"HARVARD UNIVERSITY", subtitle:"📚 CRIMSON · CAMBRIDGE, MA", ranking:"#3", rankLabel:"NAT'L UNIV.",
+      primaryColor:"#A51C30", gradFrom:"#7a0e1e", accentColor:"#D4AF37",
+      vibes:[{label:"Academics",v:5},{label:"Social Scene",v:3},{label:"Campus Beauty",v:5}],
+      rotate:-6, offsetX:-22, offsetY:18, zIndex:0, isMain:false },
+    { photoUrl:"https://commons.wikimedia.org/wiki/Special:FilePath/Boston_College_Adlersaeule_Gasson_Hall_NW_9355_20190426.jpg?width=400",
+      name:"BOSTON COLLEGE", subtitle:"🦅 EAGLES · CHESTNUT HILL, MA", ranking:"#36", rankLabel:"NAT'L UNIV.",
+      primaryColor:"#8B1A1A", gradFrom:"#6B0F1A", accentColor:"#D4AF37",
+      vibes:[{label:"School Spirit",v:5},{label:"Academics",v:4},{label:"Campus Beauty",v:5}],
+      rotate:4, offsetX:0, offsetY:0, zIndex:2, isMain:true },
+    { photoUrl:"https://commons.wikimedia.org/wiki/Special:FilePath/Princeton_University_-_Nassau_Hall_(28319503622).jpg?width=400",
+      name:"PRINCETON UNIVERSITY", subtitle:"🐯 TIGERS · PRINCETON, NJ", ranking:"#1", rankLabel:"NAT'L UNIV.",
+      primaryColor:"#E87722", gradFrom:"#b85510", accentColor:"#FFB347",
+      vibes:[{label:"Academics",v:5},{label:"Campus Beauty",v:5},{label:"School Spirit",v:4}],
+      rotate:7, offsetX:22, offsetY:12, zIndex:1, isMain:false },
+  ];
 
   if (showWelcome) return (
     <div style={{display:"flex",justifyContent:"center",minHeight:"100vh",background:"#000"}}>
@@ -2921,11 +2925,14 @@ function CollegeCards() {
       <div style={{position:"absolute",top:60,left:"50%",transform:"translateX(-50%)",width:280,height:280,borderRadius:"50%",background:"radial-gradient(circle,rgba(139,26,26,0.35) 0%,transparent 70%)",pointerEvents:"none"}}/>
 
       {/* Card stack hero */}
-      <div style={{position:"relative",width:200,height:310,marginTop:52,marginBottom:28}}>
-        <SecondCard/>
-        <div className="card-float" style={{position:"relative",zIndex:1}}>
-          <MiniCard/>
-        </div>
+      <div style={{position:"relative",width:220,height:310,marginTop:44,marginBottom:24}}>
+        {photoCards.map((c,i)=>(
+          <WelcomeCard key={c.name} {...c}
+            style={i===1?{className:"card-float"}:{}}
+          />
+        ))}
+        {/* Float animation only on front card — wrap it */}
+        <div className="card-float" style={{position:"absolute",inset:0,zIndex:3,pointerEvents:"none"}}/>
       </div>
 
       {/* Logo + tagline */}
@@ -3088,14 +3095,28 @@ function CollegeCards() {
           <div style={{display:"flex",alignItems:"center",gap:6,flexShrink:0}}>
             <button onClick={()=>setDarkMode(d=>!d)} style={{background:darkMode?"rgba(255,255,255,0.08)":"rgba(0,0,0,0.08)",border:"1px solid "+(darkMode?"rgba(255,255,255,0.18)":"rgba(0,0,0,0.18)"),borderRadius:18,padding:"5px 9px",cursor:"pointer",fontSize:14,flexShrink:0,lineHeight:1,boxShadow:darkMode?"none":"0 1px 3px rgba(0,0,0,0.12)"}}>{ darkMode?"☀️":"🌙"}</button>
             {fbUser && (
-              <div style={{position:"relative",cursor:"pointer"}} onClick={signOut} title={"Signed in as "+fbUser.displayName+" · Click to sign out"}>
-                <img src={fbUser.photoURL} alt="avatar"
-                  style={{width:30,height:30,borderRadius:"50%",border:"2px solid #D4AF37",display:"block"}}
-                  onError={e=>{e.target.style.display="none";}}/>
-                {syncing && <div style={{position:"absolute",inset:0,borderRadius:"50%",background:"rgba(0,0,0,0.45)",display:"flex",alignItems:"center",justifyContent:"center"}}>
-                  <div style={{width:10,height:10,border:"2px solid #D4AF37",borderTopColor:"transparent",borderRadius:"50%",animation:"spin 0.8s linear infinite"}}/>
-                </div>}
+              <div style={{position:"relative"}} >
+                <div onClick={()=>setShowUserMenu(m=>!m)} style={{cursor:"pointer",display:"flex",alignItems:"center",gap:5,background:"rgba(212,175,55,0.08)",border:"1px solid rgba(212,175,55,0.25)",borderRadius:20,padding:"3px 8px 3px 3px"}}>
+                  <img src={fbUser.photoURL} alt="avatar"
+                    style={{width:24,height:24,borderRadius:"50%",border:"1.5px solid #D4AF37",display:"block",flexShrink:0}}
+                    onError={e=>{e.target.style.display="none";}}/>
+                  {syncing
+                    ? <div style={{width:8,height:8,border:"2px solid #D4AF37",borderTopColor:"transparent",borderRadius:"50%",animation:"spin 0.8s linear infinite"}}/>
+                    : <svg width="10" height="10" viewBox="0 0 10 10" fill="rgba(212,175,55,0.6)"><path d="M5 7L1 3h8z"/></svg>
+                  }
+                </div>
+                {showUserMenu && (
+                  <div style={{position:"absolute",top:"calc(100% + 6px)",right:0,background:"#1a1208",border:"1px solid rgba(212,175,55,0.25)",borderRadius:10,padding:6,minWidth:160,zIndex:999,boxShadow:"0 8px 24px rgba(0,0,0,0.6)"}}>
+                    <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:11,color:"rgba(255,255,255,0.45)",padding:"4px 8px 6px",borderBottom:"1px solid rgba(255,255,255,0.08)",marginBottom:4,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{fbUser.email}</div>
+                    <button onClick={()=>{signOut();setShowUserMenu(false);}} style={{width:"100%",background:"none",border:"none",cursor:"pointer",fontFamily:"'Source Sans 3',sans-serif",fontSize:12,color:"rgba(255,120,120,0.85)",padding:"6px 8px",textAlign:"left",borderRadius:6}}>Sign out</button>
+                  </div>
+                )}
               </div>
+            )}
+            {!fbUser && guestMode && (
+              <button onClick={()=>setGuestMode(false)} style={{background:"rgba(212,175,55,0.10)",border:"1.5px solid rgba(212,175,55,0.35)",borderRadius:16,padding:"4px 10px",cursor:"pointer",fontFamily:"'Source Sans 3',sans-serif",fontSize:10,color:"#D4AF37",fontWeight:700,letterSpacing:"0.04em",whiteSpace:"nowrap"}}>
+                Sign in
+              </button>
             )}
           </div>
         </div>
