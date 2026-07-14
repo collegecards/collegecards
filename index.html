@@ -2420,6 +2420,13 @@ function CollegeCards() {
   const [seqIdx, setSeqIdx] = useState(0);
   const [guestMode, setGuestMode] = useState(false); // session-only: resets each visit
   const [showUserMenu, setShowUserMenu] = useState(false);
+  // Email auth state
+  const [emailStep, setEmailStep] = useState("idle"); // idle | email | password | creating
+  const [emailVal, setEmailVal] = useState("");
+  const [passVal, setPassVal] = useState("");
+  const [authMode, setAuthMode] = useState("signin"); // signin | signup
+  const [authError, setAuthError] = useState("");
+  const [authLoading, setAuthLoading] = useState(false);
   const [cardFlipped, setCardFlipped] = useState(false);
 
   // Responsive card — fills mobile viewport, desktop stays at 1x
@@ -2478,7 +2485,7 @@ function CollegeCards() {
   useEffect(() => save("cc_notes", notes), [notes]);
 
   // ─── FIREBASE AUTH ────────────────────────────────────────────────────────
-  const [fbUser, setFbUser] = useState(null);
+  const [fbUser, setFbUser] = useState(undefined); // undefined=unchecked, null=checked+signed-out
   const [syncing, setSyncing] = useState(false);
 
   const signInWithGoogle = () => {
@@ -2524,9 +2531,9 @@ function CollegeCards() {
       setFbUser(user || null);
       if (user) {
         loadFromFirestore(user.uid);
-        try { localStorage.removeItem("cc_guest"); } catch(e) {}
         setGuestMode(false); // ensure welcome screen won't show
       }
+
     });
     return () => unsub();
   }, []);
@@ -2796,16 +2803,21 @@ function CollegeCards() {
     );
   };
 
-  // Show welcome screen if not signed in and not in guest mode
-  const showWelcome = !fbUser && !guestMode;
+  // fbUser===undefined means Firebase hasn't responded yet — show nothing
+  if (fbUser === undefined) return (
+    <div style={{display:"flex",justifyContent:"center",minHeight:"100vh",background:"#000"}}>
+      <div style={{width:"100%",maxWidth:430,minHeight:"100vh",background:"radial-gradient(ellipse at 50% 30%,#120808 0%,#000 100%)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:16}}>
+        <style>{"@keyframes spin{to{transform:rotate(360deg)}}"}</style>
+        <div style={{fontFamily:"'Playfair Display',serif",fontWeight:900,fontSize:28,color:"#fff",letterSpacing:"0.04em"}}>
+          College<span style={{color:"#D4AF37"}}>Cards</span>
+        </div>
+        <div style={{width:32,height:32,border:"3px solid rgba(212,175,55,0.2)",borderTopColor:"#D4AF37",borderRadius:"50%",animation:"spin 0.8s linear infinite"}}/>
+      </div>
+    </div>
+  );
 
-  // Email auth state
-  const [emailStep, setEmailStep] = useState("idle"); // idle | email | password | creating
-  const [emailVal, setEmailVal] = useState("");
-  const [passVal, setPassVal] = useState("");
-  const [authMode, setAuthMode] = useState("signin"); // signin | signup
-  const [authError, setAuthError] = useState("");
-  const [authLoading, setAuthLoading] = useState(false);
+  // fbUser===null means signed out; fbUser=object means signed in
+  const showWelcome = fbUser === null && !guestMode;
 
   const handleEmailContinue = async () => {
     if (!emailVal.trim()) return;
