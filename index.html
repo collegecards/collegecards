@@ -1446,7 +1446,7 @@ function CollegeCard({ school, flipped, onFlip, triageStatus, onSkip, onMaybe, o
       <div className={"card-inner" + (flipped ? " flipped" : "")}>
         {/* FRONT — v2 card design */}
         <div className="card-face" style={{
-          background: gradTo,
+          background: gradFrom,
           border: "2px solid " + borderColor,
           boxShadow: "0 22px 70px rgba(0,0,0,0.62)",
           overflow: "hidden",
@@ -1463,7 +1463,7 @@ function CollegeCard({ school, flipped, onFlip, triageStatus, onSkip, onMaybe, o
             "linear-gradient(180deg,rgba(0,0,0,0) 0%,rgba(0,0,0,0) 28%,"+
             hexToRgba(primaryColor,0.3)+" 42%,"+
             hexToRgba(primaryColor,0.82)+" 55%,"+
-            gradTo+" 68%)"
+            gradFrom+" 68%)"
           }}/>
 
           {/* Rank badge */}
