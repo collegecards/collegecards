@@ -2418,6 +2418,7 @@ function getSuggestions(interestedIds, allBoardIds, skippedIds) {
 function CollegeCards() {
   const [view, setView] = useState("browse");
   const [seqIdx, setSeqIdx] = useState(0);
+  const [guestMode, setGuestMode] = useState(() => { try{return !!localStorage.getItem("cc_guest");}catch(e){return false;} });
   const [cardFlipped, setCardFlipped] = useState(false);
 
   // Responsive card — fills mobile viewport, desktop stays at 1x
@@ -2513,10 +2514,19 @@ function CollegeCards() {
   useEffect(() => {
     const unsub = window._fbAuth.onAuthStateChanged(user => {
       setFbUser(user || null);
-      if (user) loadFromFirestore(user.uid);
+      if (user) {
+        loadFromFirestore(user.uid);
+        try { localStorage.removeItem("cc_guest"); } catch(e) {}
+        setGuestMode(false);
+      }
     });
     return () => unsub();
   }, []);
+
+  const continueAsGuest = () => {
+    try { localStorage.setItem("cc_guest", "1"); } catch(e) {}
+    setGuestMode(true);
+  };
 
   // Sync board/triage/notes to Firestore whenever they change (if signed in)
   useEffect(() => {
@@ -2779,6 +2789,243 @@ function CollegeCards() {
     );
   };
 
+  // Show welcome screen if not signed in and not in guest mode
+  const showWelcome = !fbUser && !guestMode;
+
+  // Email auth state
+  const [emailStep, setEmailStep] = useState("idle"); // idle | email | password | creating
+  const [emailVal, setEmailVal] = useState("");
+  const [passVal, setPassVal] = useState("");
+  const [authMode, setAuthMode] = useState("signin"); // signin | signup
+  const [authError, setAuthError] = useState("");
+  const [authLoading, setAuthLoading] = useState(false);
+
+  const handleEmailContinue = async () => {
+    if (!emailVal.trim()) return;
+    setAuthLoading(true); setAuthError("");
+    try {
+      const methods = await window._fbAuth.fetchSignInMethodsForEmail(emailVal.trim());
+      setAuthMode(methods.length > 0 ? "signin" : "signup");
+      setEmailStep("password");
+    } catch(e) { setAuthError("Invalid email address."); }
+    finally { setAuthLoading(false); }
+  };
+
+  const handlePasswordSubmit = async () => {
+    if (!passVal.trim()) return;
+    setAuthLoading(true); setAuthError("");
+    try {
+      if (authMode === "signin") {
+        await window._fbAuth.signInWithEmailAndPassword(emailVal.trim(), passVal);
+      } else {
+        await window._fbAuth.createUserWithEmailAndPassword(emailVal.trim(), passVal);
+      }
+    } catch(e) {
+      const msgs = {
+        "auth/wrong-password": "Incorrect password.",
+        "auth/weak-password": "Password must be at least 6 characters.",
+        "auth/too-many-requests": "Too many attempts. Try again later.",
+        "auth/email-already-in-use": "Account exists. Try signing in.",
+      };
+      setAuthError(msgs[e.code] || "Something went wrong. Please try again.");
+    }
+    finally { setAuthLoading(false); }
+  };
+
+  const GoogleLogo = () => (
+    <svg width="18" height="18" viewBox="0 0 48 48" style={{flexShrink:0}}>
+      <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+      <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+      <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+      <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+    </svg>
+  );
+
+  // Mini BC card preview for welcome screen
+  const MiniCard = () => (
+    <div style={{
+      width:200,height:290,borderRadius:16,overflow:"hidden",
+      border:"2px solid rgba(212,175,55,0.5)",
+      boxShadow:"0 24px 60px rgba(0,0,0,0.7),0 0 40px rgba(139,26,26,0.3)",
+      position:"relative",flexShrink:0,
+      transform:"rotate(4deg)",
+      background:"#6B0F1A",
+    }}>
+      {/* Eagle photo */}
+      <img src="https://commons.wikimedia.org/wiki/Special:FilePath/Boston_College_Adlersaeule_Gasson_Hall_NW_9355_20190426.jpg?width=400"
+        style={{position:"absolute",top:0,left:0,width:"100%",height:"68%",objectFit:"cover",objectPosition:"center 20%"}}
+        onError={e=>{e.target.style.display="none";}}/>
+      {/* Gradient overlay */}
+      <div style={{position:"absolute",inset:0,background:"linear-gradient(180deg,rgba(0,0,0,0) 30%,rgba(107,15,26,0.85) 55%,#6B0F1A 72%)"}}/>
+      {/* Rank badge */}
+      <div style={{position:"absolute",top:8,left:8,background:"linear-gradient(180deg,#e4bd47,#cfa533)",borderRadius:6,padding:"3px 7px"}}>
+        <div style={{fontFamily:"'Source Sans 3',sans-serif",fontWeight:800,fontSize:11,color:"#2f230d"}}>#36</div>
+        <div style={{fontFamily:"'Source Sans 3',sans-serif",fontWeight:700,fontSize:6,color:"#2f230d",letterSpacing:"0.06em"}}>NAT&apos;L UNIV.</div>
+      </div>
+      {/* Info */}
+      <div style={{position:"absolute",bottom:0,left:0,right:0,padding:"0 10px 10px"}}>
+        <div style={{fontFamily:"'Playfair Display',serif",fontWeight:700,fontSize:15,color:"#FFF7ED",lineHeight:1.1,marginBottom:2}}>BOSTON COLLEGE</div>
+        <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:8,color:"#F3D06A",marginBottom:6}}>🦅 EAGLES · CHESTNUT HILL, MA</div>
+        {[{label:"School Spirit",v:5},{label:"Academics",v:4},{label:"Campus Beauty",v:5}].map(({label,v})=>(
+          <div key={label} style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:3}}>
+            <span style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:7,color:"rgba(255,243,230,0.85)"}}>{label}</span>
+            <div style={{display:"flex",gap:2}}>
+              {[1,2,3,4,5].map(i=>(
+                <div key={i} style={{width:14,height:5,borderRadius:999,background:i<=v?"linear-gradient(180deg,#f8e38f,#cc9828)":"rgba(255,255,255,0.15)"}}/>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+      {/* Shine */}
+      <div style={{position:"absolute",inset:0,background:"linear-gradient(135deg,transparent 40%,rgba(255,255,255,0.04) 50%,transparent 60%)",pointerEvents:"none"}}/>
+    </div>
+  );
+
+  const SecondCard = () => (
+    <div style={{
+      width:200,height:290,borderRadius:16,overflow:"hidden",
+      border:"2px solid rgba(212,175,55,0.35)",
+      boxShadow:"0 24px 60px rgba(0,0,0,0.7)",
+      position:"absolute",
+      transform:"rotate(-3deg) translateX(-20px) translateY(10px)",
+      background:"#001540",zIndex:0,
+    }}>
+      <div style={{position:"absolute",inset:0,background:"linear-gradient(160deg,#001540,#002244)"}}/>
+      <div style={{position:"absolute",bottom:20,left:10,right:10}}>
+        <div style={{fontFamily:"'Playfair Display',serif",fontWeight:700,fontSize:15,color:"#FFF7ED"}}>YALE UNIVERSITY</div>
+        <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:8,color:"#75B2DD",marginTop:2}}>🐶 BULLDOGS · NEW HAVEN, CT</div>
+      </div>
+    </div>
+  );
+
+  if (showWelcome) return (
+    <div style={{display:"flex",justifyContent:"center",minHeight:"100vh",background:"#000"}}>
+    <div style={{
+      width:"100%",maxWidth:430,minHeight:"100vh",
+      background:"radial-gradient(ellipse at 50% 20%,#1a0a00 0%,#0a0510 45%,#000 100%)",
+      display:"flex",flexDirection:"column",alignItems:"center",
+      position:"relative",overflowX:"hidden",
+    }}>
+      <style>{CSS}
+        {`@keyframes float{0%,100%{transform:rotate(4deg) translateY(0)}50%{transform:rotate(4deg) translateY(-10px)}}
+          @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+          .welcome-fadein{animation:fadeUp 0.5s ease forwards}
+          .card-float{animation:float 4s ease-in-out infinite}
+          .auth-input{width:100%;height:48px;background:rgba(255,255,255,0.06);border:1.5px solid rgba(212,175,55,0.3);border-radius:12px;padding:0 16px;color:#fff;font-family:'Source Sans 3',sans-serif;font-size:15px;outline:none;box-sizing:border-box;transition:border-color 0.2s}
+          .auth-input:focus{border-color:rgba(212,175,55,0.7)}
+          .auth-input::placeholder{color:rgba(255,255,255,0.3)}`}
+      </style>
+
+      {/* Glow behind cards */}
+      <div style={{position:"absolute",top:60,left:"50%",transform:"translateX(-50%)",width:280,height:280,borderRadius:"50%",background:"radial-gradient(circle,rgba(139,26,26,0.35) 0%,transparent 70%)",pointerEvents:"none"}}/>
+
+      {/* Card stack hero */}
+      <div style={{position:"relative",width:200,height:310,marginTop:52,marginBottom:28}}>
+        <SecondCard/>
+        <div className="card-float" style={{position:"relative",zIndex:1}}>
+          <MiniCard/>
+        </div>
+      </div>
+
+      {/* Logo + tagline */}
+      <div className="welcome-fadein" style={{textAlign:"center",padding:"0 28px",marginBottom:28}}>
+        <div style={{fontFamily:"'Playfair Display',serif",fontWeight:900,fontSize:36,color:"#fff",letterSpacing:"0.02em",lineHeight:1,marginBottom:8}}>
+          College<span style={{background:"linear-gradient(135deg,#f8e38f,#D4AF37)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>Cards</span>
+        </div>
+        <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:14,color:"rgba(255,255,255,0.45)",lineHeight:1.5}}>
+          Your college search, reimagined.<br/>Swipe. Save. Decide.
+        </div>
+      </div>
+
+      {/* Auth box */}
+      <div className="welcome-fadein" style={{width:"100%",padding:"0 24px 24px",display:"flex",flexDirection:"column",gap:10}}>
+
+        {emailStep === "idle" && (<>
+          {/* Google */}
+          <button onClick={signInWithGoogle} style={{
+            width:"100%",height:52,borderRadius:14,border:"none",cursor:"pointer",
+            background:"#fff",display:"flex",alignItems:"center",justifyContent:"center",gap:10,
+            fontFamily:"'Source Sans 3',sans-serif",fontSize:15,fontWeight:700,color:"#111",
+            boxShadow:"0 4px 30px rgba(212,175,55,0.2)",letterSpacing:"0.01em",
+          }}>
+            <GoogleLogo/> Continue with Google
+          </button>
+
+          {/* Divider */}
+          <div style={{display:"flex",alignItems:"center",gap:10,margin:"2px 0"}}>
+            <div style={{flex:1,height:1,background:"rgba(255,255,255,0.1)"}}/>
+            <span style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:11,color:"rgba(255,255,255,0.25)",letterSpacing:"0.08em"}}>OR</span>
+            <div style={{flex:1,height:1,background:"rgba(255,255,255,0.1)"}}/>
+          </div>
+
+          {/* Email */}
+          <button onClick={()=>setEmailStep("email")} style={{
+            width:"100%",height:52,borderRadius:14,cursor:"pointer",
+            background:"rgba(255,255,255,0.04)",
+            border:"1.5px solid rgba(255,255,255,0.12)",
+            display:"flex",alignItems:"center",justifyContent:"center",gap:10,
+            fontFamily:"'Source Sans 3',sans-serif",fontSize:15,fontWeight:600,
+            color:"rgba(255,255,255,0.75)",letterSpacing:"0.01em",
+          }}>
+            ✉️ Continue with Email
+          </button>
+        </>)}
+
+        {emailStep === "email" && (<>
+          <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:13,color:"rgba(255,255,255,0.5)",marginBottom:2}}>Enter your email to get started</div>
+          <input className="auth-input" type="email" placeholder="you@email.com"
+            value={emailVal} onChange={e=>setEmailVal(e.target.value)}
+            onKeyDown={e=>e.key==="Enter"&&handleEmailContinue()}
+            autoFocus/>
+          {authError && <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:12,color:"#f08080"}}>{authError}</div>}
+          <button onClick={handleEmailContinue} disabled={authLoading} style={{
+            width:"100%",height:48,borderRadius:13,border:"none",cursor:"pointer",
+            background:"linear-gradient(135deg,#f4dd85,#d1a834)",
+            fontFamily:"'Source Sans 3',sans-serif",fontSize:14,fontWeight:700,color:"#241805",
+            opacity:authLoading?0.7:1,
+          }}>{authLoading ? "Checking…" : "Continue →"}</button>
+          <button onClick={()=>{setEmailStep("idle");setAuthError("");}} style={{background:"none",border:"none",cursor:"pointer",fontFamily:"'Source Sans 3',sans-serif",fontSize:12,color:"rgba(255,255,255,0.3)",padding:"4px 0"}}>← Back</button>
+        </>)}
+
+        {emailStep === "password" && (<>
+          <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:13,color:"rgba(255,255,255,0.5)",marginBottom:2}}>
+            {authMode==="signin" ? "Welcome back! Enter your password." : "Create a password for your account."}
+          </div>
+          <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:12,color:"#D4AF37",marginBottom:2}}>{emailVal}</div>
+          <input className="auth-input" type="password" placeholder={authMode==="signin"?"Password":"Create password (6+ chars)"}
+            value={passVal} onChange={e=>setPassVal(e.target.value)}
+            onKeyDown={e=>e.key==="Enter"&&handlePasswordSubmit()}
+            autoFocus/>
+          {authError && <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:12,color:"#f08080"}}>{authError}</div>}
+          <button onClick={handlePasswordSubmit} disabled={authLoading} style={{
+            width:"100%",height:48,borderRadius:13,border:"none",cursor:"pointer",
+            background:"linear-gradient(135deg,#f4dd85,#d1a834)",
+            fontFamily:"'Source Sans 3',sans-serif",fontSize:14,fontWeight:700,color:"#241805",
+            opacity:authLoading?0.7:1,
+          }}>{authLoading ? "Signing in…" : authMode==="signin" ? "Sign In" : "Create Account"}</button>
+          <button onClick={()=>{setEmailStep("email");setPassVal("");setAuthError("");}} style={{background:"none",border:"none",cursor:"pointer",fontFamily:"'Source Sans 3',sans-serif",fontSize:12,color:"rgba(255,255,255,0.3)",padding:"4px 0"}}>← Back</button>
+        </>)}
+
+        {/* Guest link */}
+        {emailStep === "idle" && (
+          <button onClick={continueAsGuest} style={{
+            background:"none",border:"none",cursor:"pointer",marginTop:4,
+            fontFamily:"'Source Sans 3',sans-serif",fontSize:12,
+            color:"rgba(255,255,255,0.22)",padding:"6px 0",letterSpacing:"0.02em",
+          }}>
+            Continue without an account
+          </button>
+        )}
+      </div>
+
+      <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:10,color:"rgba(255,255,255,0.14)",letterSpacing:"0.08em",marginBottom:20,textAlign:"center"}}>
+        Rankings: US News 2025 · Data: Common Data Sets 2024–25
+      </div>
+    </div>
+    </div>
+  );
+
   return (
     <div style={{display:"flex",justifyContent:"center",minHeight:"100vh",background:"#000"}}>
     <div style={{width:"100%",maxWidth:430,minHeight:"100vh",maxHeight:"100vh",background:darkMode?"radial-gradient(ellipse at 55% 40%,#120808 0%,#080510 50%,#000 100%)":"linear-gradient(180deg,#f0ece4 0%,#e8e2d8 100%)",display:"flex",flexDirection:"column",overflowX:"hidden",position:"relative"}}>
@@ -2840,7 +3087,7 @@ function CollegeCards() {
           </div>
           <div style={{display:"flex",alignItems:"center",gap:6,flexShrink:0}}>
             <button onClick={()=>setDarkMode(d=>!d)} style={{background:darkMode?"rgba(255,255,255,0.08)":"rgba(0,0,0,0.08)",border:"1px solid "+(darkMode?"rgba(255,255,255,0.18)":"rgba(0,0,0,0.18)"),borderRadius:18,padding:"5px 9px",cursor:"pointer",fontSize:14,flexShrink:0,lineHeight:1,boxShadow:darkMode?"none":"0 1px 3px rgba(0,0,0,0.12)"}}>{ darkMode?"☀️":"🌙"}</button>
-            {fbUser ? (
+            {fbUser && (
               <div style={{position:"relative",cursor:"pointer"}} onClick={signOut} title={"Signed in as "+fbUser.displayName+" · Click to sign out"}>
                 <img src={fbUser.photoURL} alt="avatar"
                   style={{width:30,height:30,borderRadius:"50%",border:"2px solid #D4AF37",display:"block"}}
@@ -2849,10 +3096,6 @@ function CollegeCards() {
                   <div style={{width:10,height:10,border:"2px solid #D4AF37",borderTopColor:"transparent",borderRadius:"50%",animation:"spin 0.8s linear infinite"}}/>
                 </div>}
               </div>
-            ) : (
-              <button onClick={signInWithGoogle} style={{background:"rgba(212,175,55,0.10)",border:"1.5px solid rgba(212,175,55,0.45)",borderRadius:18,padding:"5px 9px",cursor:"pointer",fontFamily:"'Source Sans 3',sans-serif",fontSize:10,color:"#D4AF37",fontWeight:700,letterSpacing:"0.04em",flexShrink:0,whiteSpace:"nowrap",lineHeight:1}}>
-                Sign in
-              </button>
             )}
           </div>
         </div>
