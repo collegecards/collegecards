@@ -8,6 +8,23 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🃏</text></svg>"/>
   <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyA8K8piqAbQ1quakOZGhJZFkZUUMxhSwxE",
+      authDomain: "collegecards2026.firebaseapp.com",
+      projectId: "collegecards2026",
+      storageBucket: "collegecards2026.firebasestorage.app",
+      messagingSenderId: "295010539830",
+      appId: "1:295010539830:web:ee059bd741f3712a72bb97"
+    };
+    firebase.initializeApp(firebaseConfig);
+    window._fbAuth = firebase.auth();
+    window._fbDb  = firebase.firestore();
+    window._googleProvider = new firebase.auth.GoogleAuthProvider();
+  </script>
   <script src="https://unpkg.com/@babel/standalone@7.23.10/babel.min.js"></script>
   <style>*{box-sizing:border-box}body{margin:0;background:#000}</style>
 </head>
@@ -2457,6 +2474,58 @@ function CollegeCards() {
   useEffect(() => save("cc_board", board), [board]);
   useEffect(() => save("cc_triage", triage), [triage]);
   useEffect(() => save("cc_notes", notes), [notes]);
+
+  // ─── FIREBASE AUTH ────────────────────────────────────────────────────────
+  const [fbUser, setFbUser] = useState(null);
+  const [syncing, setSyncing] = useState(false);
+
+  const signInWithGoogle = () => {
+    window._fbAuth.signInWithPopup(window._googleProvider).catch(e => console.error("Sign-in failed:", e));
+  };
+
+  const signOut = () => {
+    window._fbAuth.signOut();
+  };
+
+  // Load data from Firestore and merge into local state
+  const loadFromFirestore = async (uid) => {
+    try {
+      setSyncing(true);
+      const doc = await window._fbDb.collection("users").doc(uid).get();
+      if (doc.exists) {
+        const data = doc.data();
+        if (data.triage) setTriage(data.triage);
+        if (data.board)  setBoard(data.board);
+        if (data.notes)  setNotes(data.notes);
+      }
+    } catch(e) { console.error("Firestore load error:", e); }
+    finally { setSyncing(false); }
+  };
+
+  // Save data to Firestore
+  const saveToFirestore = async (uid, data) => {
+    try {
+      await window._fbDb.collection("users").doc(uid).set(data, { merge: true });
+    } catch(e) { console.error("Firestore save error:", e); }
+  };
+
+  // Auth state listener
+  useEffect(() => {
+    const unsub = window._fbAuth.onAuthStateChanged(user => {
+      setFbUser(user || null);
+      if (user) loadFromFirestore(user.uid);
+    });
+    return () => unsub();
+  }, []);
+
+  // Sync board/triage/notes to Firestore whenever they change (if signed in)
+  useEffect(() => {
+    if (!fbUser) return;
+    const timer = setTimeout(() => {
+      saveToFirestore(fbUser.uid, { triage, board, notes });
+    }, 1500); // debounce 1.5s
+    return () => clearTimeout(timer);
+  }, [board, triage, notes, fbUser]);
   useEffect(() => save("cc_mystatus", myStatus), [myStatus]);
   const [expandId, setExpandId] = useState(null);
   const [showFeedback, setShowFeedback] = useState(false);
@@ -2695,6 +2764,7 @@ function CollegeCards() {
     '    .search-scroll{scrollbar-width:none;}',
     '    .back-scroll::-webkit-scrollbar{display:none;}',
     '    .back-scroll{scrollbar-width:none;}' ,
+    '    @keyframes spin{to{transform:rotate(360deg)}}' ,
 
   ].join("\n");
   const NavTab = ({id, icon, label, badge}) => {
@@ -2768,7 +2838,24 @@ function CollegeCards() {
               <span style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:8,color:view==="my"?"#D4AF37":darkMode?"rgba(255,255,255,0.4)":"rgba(0,0,0,0.5)",fontWeight:700,letterSpacing:"0.04em"}}>MY SCHOOLS</span>
             </div>
           </div>
-          <button onClick={()=>setDarkMode(d=>!d)} style={{background:darkMode?"rgba(255,255,255,0.08)":"rgba(0,0,0,0.08)",border:"1px solid "+(darkMode?"rgba(255,255,255,0.18)":"rgba(0,0,0,0.18)"),borderRadius:18,padding:"5px 9px",cursor:"pointer",fontSize:14,flexShrink:0,lineHeight:1,boxShadow:darkMode?"none":"0 1px 3px rgba(0,0,0,0.12)"}}>{ darkMode?"☀️":"🌙"}</button>
+          <div style={{display:"flex",alignItems:"center",gap:6,flexShrink:0}}>
+            <button onClick={()=>setDarkMode(d=>!d)} style={{background:darkMode?"rgba(255,255,255,0.08)":"rgba(0,0,0,0.08)",border:"1px solid "+(darkMode?"rgba(255,255,255,0.18)":"rgba(0,0,0,0.18)"),borderRadius:18,padding:"5px 9px",cursor:"pointer",fontSize:14,flexShrink:0,lineHeight:1,boxShadow:darkMode?"none":"0 1px 3px rgba(0,0,0,0.12)"}}>{ darkMode?"☀️":"🌙"}</button>
+            {fbUser ? (
+              <div style={{position:"relative",cursor:"pointer"}} onClick={signOut} title={"Signed in as "+fbUser.displayName+"
+Click to sign out"}>
+                <img src={fbUser.photoURL} alt="avatar"
+                  style={{width:30,height:30,borderRadius:"50%",border:"2px solid #D4AF37",display:"block"}}
+                  onError={e=>{e.target.style.display="none";}}/>
+                {syncing && <div style={{position:"absolute",inset:0,borderRadius:"50%",background:"rgba(0,0,0,0.45)",display:"flex",alignItems:"center",justifyContent:"center"}}>
+                  <div style={{width:10,height:10,border:"2px solid #D4AF37",borderTopColor:"transparent",borderRadius:"50%",animation:"spin 0.8s linear infinite"}}/>
+                </div>}
+              </div>
+            ) : (
+              <button onClick={signInWithGoogle} style={{background:"rgba(212,175,55,0.10)",border:"1.5px solid rgba(212,175,55,0.45)",borderRadius:18,padding:"5px 9px",cursor:"pointer",fontFamily:"'Source Sans 3',sans-serif",fontSize:10,color:"#D4AF37",fontWeight:700,letterSpacing:"0.04em",flexShrink:0,whiteSpace:"nowrap",lineHeight:1}}>
+                Sign in
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
