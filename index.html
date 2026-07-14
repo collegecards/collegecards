@@ -2518,11 +2518,12 @@ function CollegeCards() {
     } catch(e) { console.error("Firestore save error:", e); }
   };
 
-  // Close user menu on outside click
+  // Close user menu on outside click (setTimeout prevents open-click from immediately closing)
   useEffect(() => {
+    if (!showUserMenu) return;
     const handler = () => setShowUserMenu(false);
-    if (showUserMenu) document.addEventListener("click", handler);
-    return () => document.removeEventListener("click", handler);
+    const timer = setTimeout(() => document.addEventListener("click", handler), 10);
+    return () => { clearTimeout(timer); document.removeEventListener("click", handler); };
   }, [showUserMenu]);
 
   // Auth state listener
@@ -3101,32 +3102,32 @@ function CollegeCards() {
               <span style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:8,color:view==="my"?"#D4AF37":darkMode?"rgba(255,255,255,0.4)":"rgba(0,0,0,0.5)",fontWeight:700,letterSpacing:"0.04em"}}>MY SCHOOLS</span>
             </div>
           </div>
-          <div style={{display:"flex",alignItems:"center",gap:5,flexShrink:0}}>
-            <button onClick={()=>setDarkMode(d=>!d)} style={{background:darkMode?"rgba(255,255,255,0.08)":"rgba(0,0,0,0.08)",border:"1px solid "+(darkMode?"rgba(255,255,255,0.18)":"rgba(0,0,0,0.18)"),borderRadius:18,padding:"5px 9px",cursor:"pointer",fontSize:14,flexShrink:0,lineHeight:1,boxShadow:darkMode?"none":"0 1px 3px rgba(0,0,0,0.12)"}}>{ darkMode?"☀️":"🌙"}</button>
-            {fbUser && (
-              <div style={{position:"relative"}} >
-                <div onClick={()=>setShowUserMenu(m=>!m)} style={{cursor:"pointer",display:"flex",alignItems:"center",gap:5,background:"rgba(212,175,55,0.08)",border:"1px solid rgba(212,175,55,0.25)",borderRadius:20,padding:"3px 8px 3px 3px"}}>
+          <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:3,flexShrink:0}}>
+            {/* Dark mode toggle - top */}
+            <button onClick={()=>setDarkMode(d=>!d)} style={{background:darkMode?"rgba(255,255,255,0.08)":"rgba(0,0,0,0.08)",border:"1px solid "+(darkMode?"rgba(255,255,255,0.18)":"rgba(0,0,0,0.18)"),borderRadius:12,padding:"2px 7px",cursor:"pointer",fontSize:12,lineHeight:1.4,flexShrink:0}}>{ darkMode?"☀️":"🌙"}</button>
+            {/* Avatar / Sign in - bottom */}
+            {fbUser ? (
+              <div style={{position:"relative"}}>
+                <div onClick={()=>setShowUserMenu(m=>!m)} style={{cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",width:28,height:20}}>
                   <img src={fbUser.photoURL} alt="avatar"
-                    style={{width:24,height:24,borderRadius:"50%",border:"1.5px solid #D4AF37",display:"block",flexShrink:0}}
+                    style={{width:22,height:22,borderRadius:"50%",border:"1.5px solid #D4AF37",display:"block"}}
                     onError={e=>{e.target.style.display="none";}}/>
-                  {syncing
-                    ? <div style={{width:8,height:8,border:"2px solid #D4AF37",borderTopColor:"transparent",borderRadius:"50%",animation:"spin 0.8s linear infinite"}}/>
-                    : <svg width="10" height="10" viewBox="0 0 10 10" fill="rgba(212,175,55,0.6)"><path d="M5 7L1 3h8z"/></svg>
-                  }
+                  {syncing && <div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center"}}>
+                    <div style={{width:8,height:8,border:"2px solid #D4AF37",borderTopColor:"transparent",borderRadius:"50%",animation:"spin 0.8s linear infinite"}}/>
+                  </div>}
                 </div>
                 {showUserMenu && (
-                  <div style={{position:"fixed",top:60,right:8,background:"#1a1208",border:"1px solid rgba(212,175,55,0.25)",borderRadius:10,padding:6,minWidth:160,zIndex:9999,boxShadow:"0 8px 24px rgba(0,0,0,0.6)"}}>
+                  <div style={{position:"fixed",top:58,right:8,background:"#1a1208",border:"1px solid rgba(212,175,55,0.25)",borderRadius:10,padding:6,minWidth:160,zIndex:9999,boxShadow:"0 8px 24px rgba(0,0,0,0.6)"}}>
                     <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:11,color:"rgba(255,255,255,0.45)",padding:"4px 8px 6px",borderBottom:"1px solid rgba(255,255,255,0.08)",marginBottom:4,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{fbUser.email}</div>
                     <button onClick={()=>{signOut();setShowUserMenu(false);}} style={{width:"100%",background:"none",border:"none",cursor:"pointer",fontFamily:"'Source Sans 3',sans-serif",fontSize:12,color:"rgba(255,120,120,0.85)",padding:"6px 8px",textAlign:"left",borderRadius:6}}>Sign out</button>
                   </div>
                 )}
               </div>
-            )}
-            {!fbUser && guestMode && (
-              <button onClick={()=>setGuestMode(false)} title="Sign in" style={{background:"rgba(212,175,55,0.10)",border:"1.5px solid rgba(212,175,55,0.35)",borderRadius:"50%",width:30,height:30,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:15}}>
+            ) : guestMode ? (
+              <button onClick={()=>setGuestMode(false)} title="Sign in" style={{background:"rgba(212,175,55,0.10)",border:"1.5px solid rgba(212,175,55,0.35)",borderRadius:10,padding:"2px 6px",cursor:"pointer",fontSize:11,color:"#D4AF37",fontWeight:700,lineHeight:1.4}}>
                 👤
               </button>
-            )}
+            ) : null}
           </div>
         </div>
       </div>
