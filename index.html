@@ -1991,7 +1991,7 @@ function MiniCard({ school, lane, onRemove, onMoveLane, onExpand, isDragging, dr
   );
 }
 // ─── BOARD VIEW ────────────────────────────────────────────────────────────
-function BoardView({ board, onRemove, onMoveLane, onReorder, onRankReorder, onRankMove, darkMode, suggestions, onJumpToSuggest, onSkip, onMaybe, onInterested, triage, allBoardIds }) {
+function BoardView({ board, onRemove, onMoveLane, onReorder, onRankReorder, onRankMove, darkMode, suggestions, onJumpToSuggest, onSkip, onMaybe, onInterested, triage, allBoardIds, onSharePack }) {
   const [subView, setSubView] = useState("classify");
   const [dragging, setDragging] = useState(null);
   const [dragOver, setDragOver] = useState(null);
@@ -2042,11 +2042,20 @@ function BoardView({ board, onRemove, onMoveLane, onReorder, onRankReorder, onRa
           style={{background:"linear-gradient(135deg,#b8860b,#D4AF37)",border:"none",color:"#000",borderRadius:8,padding:"7px 14px",cursor:"pointer",fontFamily:"'Source Sans 3',sans-serif",fontSize:12,fontWeight:800,letterSpacing:"0.05em",boxShadow:"0 2px 14px rgba(212,175,55,0.5)",display:"flex",alignItems:"center",gap:6}}>
           <span style={{fontSize:18,filter:"drop-shadow(0 0 5px rgba(255,255,255,0.95))"}}>🏆</span> My Rank List
         </button>
-        {tbdCount>0 && subView==="classify" && (
-          <div style={{marginLeft:"auto",fontFamily:"'Source Sans 3',sans-serif",fontSize:9,color:darkMode?"rgba(212,175,55,0.6)":"rgba(160,100,0,0.8)",letterSpacing:"0.06em"}}>
-            ↓ classify TBD schools below
-          </div>
-        )}
+        <div style={{marginLeft:"auto",display:"flex",alignItems:"center",gap:6}}>
+          {tbdCount>0 && subView==="classify" && (
+            <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:9,color:darkMode?"rgba(212,175,55,0.6)":"rgba(160,100,0,0.8)",letterSpacing:"0.06em"}}>
+              ↓ classify TBD schools below
+            </div>
+          )}
+          {onSharePack && allIds.length > 0 && (
+            <button onClick={onSharePack}
+              style={{background:"rgba(212,175,55,0.12)",border:"1.5px solid rgba(212,175,55,0.4)",borderRadius:8,padding:"6px 10px",cursor:"pointer",display:"flex",alignItems:"center",gap:5,flexShrink:0}}>
+              <span style={{fontSize:14}}>📤</span>
+              <span style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:11,color:"#D4AF37",fontWeight:700}}>Share Pack</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* CLASSIFY VIEW */}
@@ -3342,12 +3351,6 @@ function CollegeCards() {
             🔍
           </button>
           <div style={{display:"flex",gap:8,alignItems:"flex-start"}}>
-            {fbUser && (
-              <button onClick={()=>setPackView("create")} style={{background:"rgba(212,175,55,0.12)",border:"1.5px solid rgba(212,175,55,0.4)",borderRadius:8,padding:"3px 8px",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:1,flexShrink:0}}>
-                <span style={{fontSize:15}}>📤</span>
-                <span style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:7,color:"#D4AF37",fontWeight:700,letterSpacing:"0.04em"}}>SHARE</span>
-              </button>
-            )}
             <div onClick={()=>setView("browse")} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2,cursor:"pointer"}}>
               <div style={{background:view==="browse"?"rgba(212,175,55,0.12)":(darkMode?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.06)"),border:"2px solid "+(view==="browse"?"#D4AF37":darkMode?"rgba(255,255,255,0.22)":"rgba(0,0,0,0.18)"),borderRadius:8,width:36,height:36,display:"flex",alignItems:"center",justifyContent:"center",fontSize:19}}>🏫</div>
               <span style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:8,color:view==="browse"?"#D4AF37":darkMode?"rgba(255,255,255,0.4)":"rgba(0,0,0,0.5)",fontWeight:700,letterSpacing:"0.04em"}}>BROWSE</span>
@@ -3491,7 +3494,7 @@ function CollegeCards() {
 
       {view==="board" && (
         <div style={{flex:1,display:"flex",flexDirection:"column",overflowX:"hidden"}}>
-          <BoardView board={board} onRemove={removeFromBoard} onMoveLane={moveLane} onReorder={reorder} onRankReorder={rankReorder} onRankMove={rankMove} darkMode={darkMode} suggestions={suggestions} onJumpToSuggest={id=>{setSuggestReturnIdx(true);jumpTo(id);setView("browse");}} onSkip={markSkip} onMaybe={markMaybe} onInterested={markInterested} triage={triage} allBoardIds={allBoardIds}/>
+          <BoardView board={board} onRemove={removeFromBoard} onMoveLane={moveLane} onReorder={reorder} onRankReorder={rankReorder} onRankMove={rankMove} darkMode={darkMode} suggestions={suggestions} onJumpToSuggest={id=>{setSuggestReturnIdx(true);jumpTo(id);setView("browse");}} onSkip={markSkip} onMaybe={markMaybe} onInterested={markInterested} triage={triage} allBoardIds={allBoardIds} onSharePack={fbUser ? ()=>setPackView("create") : null}/>
         </div>
       )}
 
