@@ -2415,11 +2415,179 @@ function getSuggestions(interestedIds, allBoardIds, skippedIds) {
   return candidates.slice(0,3).map(x=>x.s);
 }
 
+// ─── PACK CREATOR MODAL ────────────────────────────────────────────────────
+function PackCreatorModal({ board, allBoardIds, onClose, onCreate, darkMode }) {
+  const [schools, setSchools] = React.useState([]);
+  const [note, setNote] = React.useState("");
+  const [search, setSearch] = React.useState("");
+  const [sent, setSent] = React.useState(null);
+  const [loading, setLoading] = React.useState(false);
+
+  const bg = darkMode ? "#120c02" : "#f8f4ec";
+  const border = "1px solid rgba(212,175,55,0.25)";
+  const textColor = darkMode ? "#fff" : "#1a1208";
+  const subColor = darkMode ? "rgba(255,255,255,0.45)" : "rgba(0,0,0,0.45)";
+
+  const boardSchools = allBoardIds.map(id => SCHOOLS.find(s => s.id === id)).filter(Boolean);
+  const searchResults = search.length > 1
+    ? SCHOOLS.filter(s => s.name.toLowerCase().includes(search.toLowerCase())).slice(0, 6)
+    : [];
+  const displayList = search.length > 1 ? searchResults : boardSchools;
+  const toggle = (id) => setSchools(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+
+  const handleCreate = async () => {
+    if (schools.length === 0) return;
+    setLoading(true);
+    try { await onCreate(schools, note); } finally { setLoading(false); }
+  };
+
+  return (
+    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.75)",zIndex:10000,display:"flex",alignItems:"flex-end",justifyContent:"center"}}>
+      <div style={{width:"100%",maxWidth:430,background:bg,borderRadius:"20px 20px 0 0",maxHeight:"90vh",display:"flex",flexDirection:"column",overflow:"hidden"}}>
+        {/* Header */}
+        <div style={{padding:"16px 18px 10px",borderBottom:border,display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0}}>
+          <div>
+            <div style={{fontFamily:"'Playfair Display',serif",fontWeight:700,fontSize:17,color:textColor}}>Create a School Pack</div>
+            <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:11,color:subColor,marginTop:2}}>Share curated schools with friends, family, or students</div>
+          </div>
+          <button onClick={onClose} style={{background:"none",border:"none",cursor:"pointer",fontSize:20,color:subColor,padding:"2px 6px"}}>✕</button>
+        </div>
+
+        <div style={{flex:1,overflowY:"auto",padding:"14px 18px"}}>
+          {/* Note */}
+          <div style={{marginBottom:14}}>
+            <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:11,fontWeight:700,color:subColor,letterSpacing:"0.06em",marginBottom:6}}>PERSONAL NOTE (optional)</div>
+            <textarea
+              value={note} onChange={e=>setNote(e.target.value)}
+              placeholder="e.g. Based on your interests and budget, I think these 6 schools are worth exploring..."
+              style={{width:"100%",minHeight:70,background:darkMode?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.04)",border:border,borderRadius:10,padding:"10px 12px",color:textColor,fontFamily:"'Source Sans 3',sans-serif",fontSize:13,outline:"none",resize:"vertical",boxSizing:"border-box"}}
+            />
+          </div>
+
+          {/* Search */}
+          <div style={{marginBottom:10}}>
+            <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:11,fontWeight:700,color:subColor,letterSpacing:"0.06em",marginBottom:6}}>
+              ADD SCHOOLS {schools.length > 0 && <span style={{color:"#D4AF37"}}>({schools.length} selected)</span>}
+            </div>
+            <input
+              value={search} onChange={e=>setSearch(e.target.value)}
+              placeholder="Search any school, or pick from your Board below..."
+              style={{width:"100%",height:38,background:darkMode?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.04)",border:border,borderRadius:10,padding:"0 12px",color:textColor,fontFamily:"'Source Sans 3',sans-serif",fontSize:13,outline:"none",boxSizing:"border-box"}}
+            />
+          </div>
+
+          {/* School list */}
+          <div style={{display:"flex",flexDirection:"column",gap:6}}>
+            {displayList.length === 0 && search.length > 1 && (
+              <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:12,color:subColor,textAlign:"center",padding:"12px 0"}}>No schools found</div>
+            )}
+            {displayList.length === 0 && search.length <= 1 && boardSchools.length === 0 && (
+              <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:12,color:subColor,textAlign:"center",padding:"12px 0"}}>Add schools to your Board first, or search above</div>
+            )}
+            {displayList.map(s => {
+              const selected = schools.includes(s.id);
+              return (
+                <div key={s.id} onClick={()=>toggle(s.id)}
+                  style={{display:"flex",alignItems:"center",gap:10,padding:"8px 10px",borderRadius:10,cursor:"pointer",background:selected?"rgba(212,175,55,0.12)":"rgba(0,0,0,0.02)",border:"1px solid "+(selected?"rgba(212,175,55,0.4)":"rgba(0,0,0,0.07)"),transition:"all 0.15s"}}>
+                  <div style={{width:20,height:20,borderRadius:6,border:"2px solid "+(selected?"#D4AF37":"rgba(0,0,0,0.2)"),background:selected?"#D4AF37":"transparent",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                    {selected && <span style={{color:"#1a1208",fontSize:12,fontWeight:900}}>✓</span>}
+                  </div>
+                  <span style={{fontSize:16,flexShrink:0}}>{s.mascot}</span>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:13,fontWeight:600,color:textColor,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{s.name}</div>
+                    <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:10,color:subColor}}>{s.location}</div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div style={{padding:"12px 18px",borderTop:border,flexShrink:0}}>
+          <button onClick={handleCreate} disabled={schools.length===0||loading}
+            style={{width:"100%",height:48,borderRadius:14,border:"none",cursor:schools.length>0?"pointer":"not-allowed",background:schools.length>0?"linear-gradient(135deg,#f4dd85,#d1a834)":"rgba(0,0,0,0.1)",fontFamily:"'Source Sans 3',sans-serif",fontSize:14,fontWeight:700,color:schools.length>0?"#241805":"rgba(0,0,0,0.3)",opacity:loading?0.7:1}}>
+            {loading ? "Creating link..." : schools.length > 0 ? `Create Pack · ${schools.length} school${schools.length>1?"s":""}` : "Select schools to continue"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── PACK SENT MODAL ───────────────────────────────────────────────────────
+function PackSentModal({ url, onClose, darkMode }) {
+  const [copied, setCopied] = React.useState(false);
+  const copy = async () => {
+    try { await navigator.clipboard.writeText(url); setCopied(true); setTimeout(()=>setCopied(false),2000); } catch(e) {}
+  };
+  const bg = darkMode ? "#120c02" : "#f8f4ec";
+  const textColor = darkMode ? "#fff" : "#1a1208";
+  const subColor = darkMode ? "rgba(255,255,255,0.5)" : "rgba(0,0,0,0.5)";
+  return (
+    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.75)",zIndex:10000,display:"flex",alignItems:"center",justifyContent:"center",padding:24}}>
+      <div style={{width:"100%",maxWidth:380,background:bg,borderRadius:20,padding:28,textAlign:"center"}}>
+        <div style={{fontSize:48,marginBottom:12}}>🎉</div>
+        <div style={{fontFamily:"'Playfair Display',serif",fontWeight:700,fontSize:20,color:textColor,marginBottom:8}}>Pack link created!</div>
+        <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:13,color:subColor,marginBottom:20,lineHeight:1.5}}>Share this link with anyone — they can swipe through your schools without needing an account.</div>
+        <div style={{background:darkMode?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.06)",borderRadius:10,padding:"10px 14px",fontFamily:"monospace",fontSize:11,color:textColor,wordBreak:"break-all",marginBottom:16,textAlign:"left"}}>{url}</div>
+        <button onClick={copy} style={{width:"100%",height:46,borderRadius:12,border:"none",cursor:"pointer",background:"linear-gradient(135deg,#f4dd85,#d1a834)",fontFamily:"'Source Sans 3',sans-serif",fontSize:14,fontWeight:700,color:"#241805",marginBottom:10}}>
+          {copied ? "✓ Copied!" : "Copy Link"}
+        </button>
+        <button onClick={onClose} style={{background:"none",border:"none",cursor:"pointer",fontFamily:"'Source Sans 3',sans-serif",fontSize:13,color:subColor}}>Done</button>
+      </div>
+    </div>
+  );
+}
+
+// ─── PACK DONE MODAL (recipient finished swiping) ──────────────────────────
+function PackDoneModal({ packMode, fbUser, onSubmit, onSkip, darkMode }) {
+  const [shareBack, setShareBack] = React.useState(false);
+  const bg = darkMode ? "#120c02" : "#f8f4ec";
+  const textColor = darkMode ? "#fff" : "#1a1208";
+  const subColor = darkMode ? "rgba(255,255,255,0.5)" : "rgba(0,0,0,0.5)";
+  return (
+    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.8)",zIndex:10000,display:"flex",alignItems:"center",justifyContent:"center",padding:24}}>
+      <div style={{width:"100%",maxWidth:380,background:bg,borderRadius:20,padding:28,textAlign:"center"}}>
+        <div style={{fontSize:44,marginBottom:10}}>🎓</div>
+        <div style={{fontFamily:"'Playfair Display',serif",fontWeight:700,fontSize:19,color:textColor,marginBottom:6}}>You finished the pack!</div>
+        <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:13,color:subColor,marginBottom:20,lineHeight:1.5}}>
+          {packMode.fromName} sent you this. Want to share your reactions back?
+        </div>
+        <div onClick={()=>setShareBack(s=>!s)}
+          style={{display:"flex",alignItems:"center",gap:10,padding:"10px 14px",borderRadius:10,cursor:"pointer",background:shareBack?"rgba(212,175,55,0.12)":"rgba(0,0,0,0.04)",border:"1px solid "+(shareBack?"rgba(212,175,55,0.4)":"rgba(0,0,0,0.1)"),marginBottom:16,textAlign:"left"}}>
+          <div style={{width:20,height:20,borderRadius:6,border:"2px solid "+(shareBack?"#D4AF37":"rgba(0,0,0,0.2)"),background:shareBack?"#D4AF37":"transparent",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+            {shareBack && <span style={{color:"#1a1208",fontSize:12,fontWeight:900}}>✓</span>}
+          </div>
+          <div>
+            <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:13,fontWeight:600,color:textColor}}>Share my reactions with {packMode.fromName}</div>
+            <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:11,color:subColor}}>They'll see which schools you liked or skipped</div>
+          </div>
+        </div>
+        <button onClick={()=>shareBack?onSubmit():onSkip()} style={{width:"100%",height:46,borderRadius:12,border:"none",cursor:"pointer",background:"linear-gradient(135deg,#f4dd85,#d1a834)",fontFamily:"'Source Sans 3',sans-serif",fontSize:14,fontWeight:700,color:"#241805",marginBottom:10}}>
+          {shareBack ? "Share & finish" : "Finish"}
+        </button>
+        <button onClick={onSkip} style={{background:"none",border:"none",cursor:"pointer",fontFamily:"'Source Sans 3',sans-serif",fontSize:12,color:subColor}}>Keep my reactions private</button>
+      </div>
+    </div>
+  );
+}
+
+
 function CollegeCards() {
   const [view, setView] = useState("browse");
   const [seqIdx, setSeqIdx] = useState(0);
   const [guestMode, setGuestMode] = useState(false); // session-only: resets each visit
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [packMode, setPackMode] = useState(null);   // null | {schools:[ids], note, fromName, packId}
+  const [packView, setPackView] = useState("idle"); // idle | create | sent
+  const [packSchools, setPackSchools] = useState([]);
+  const [packNote, setPackNote] = useState("");
+  const [packSearch, setPackSearch] = useState("");
+  const [packSent, setPackSent] = useState(null);   // {packId, url}
+  const [myPacks, setMyPacks] = useState([]);
+  const [packReactions, setPackReactions] = useState({}); // schoolId -> reaction for current pack
+  const [packDone, setPackDone] = useState(false);
   // Email auth state
   const [emailStep, setEmailStep] = useState("idle"); // idle | email | password | creating
   const [emailVal, setEmailVal] = useState("");
@@ -2543,6 +2711,71 @@ function CollegeCards() {
     setGuestMode(true);
   };
 
+  // ─── PACK FUNCTIONS ───────────────────────────────────────────────────────
+
+  // Detect ?pack=ID in URL on load
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const packId = params.get("pack");
+    if (!packId) return;
+    window._fbDb.collection("packs").doc(packId).get().then(doc => {
+      if (!doc.exists) return;
+      const data = doc.data();
+      setPackMode({ ...data, packId });
+      // Clean URL without reload
+      window.history.replaceState({}, "", window.location.pathname);
+    }).catch(e => console.error("Pack load error:", e));
+  }, []);
+
+  // Load my sent packs when signed in
+  useEffect(() => {
+    if (!fbUser) return;
+    window._fbDb.collection("packs")
+      .where("fromUid", "==", fbUser.uid)
+      .orderBy("createdAt", "desc")
+      .limit(20)
+      .get()
+      .then(snap => setMyPacks(snap.docs.map(d => ({ packId: d.id, ...d.data() }))))
+      .catch(() => {});
+  }, [fbUser]);
+
+  const createPack = async () => {
+    if (!fbUser || packSchools.length === 0) return;
+    try {
+      const packData = {
+        schoolIds: packSchools,
+        note: packNote.trim(),
+        fromName: fbUser.displayName || fbUser.email.split("@")[0],
+        fromUid: fbUser.uid,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        recipients: {}
+      };
+      const ref = await window._fbDb.collection("packs").add(packData);
+      const url = window.location.origin + window.location.pathname + "?pack=" + ref.id;
+      setPackSent({ packId: ref.id, url });
+      setPackView("sent");
+      // Copy to clipboard
+      try { await navigator.clipboard.writeText(url); } catch(e) {}
+    } catch(e) { console.error("Create pack error:", e); }
+  };
+
+  const submitPackReactions = async () => {
+    if (!packMode?.packId) return;
+    try {
+      const recipientData = {
+        openedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        sharedBack: true,
+        reactions: packReactions,
+        name: fbUser ? (fbUser.displayName || fbUser.email) : "Anonymous"
+      };
+      const key = fbUser ? fbUser.uid : ("anon_" + Date.now());
+      await window._fbDb.collection("packs").doc(packMode.packId)
+        .set({ recipients: { [key]: recipientData } }, { merge: true });
+    } catch(e) { console.error("Submit reactions error:", e); }
+    setPackMode(null);
+    setPackDone(false);
+  };
+
   // Sync board/triage/notes to Firestore whenever they change (if signed in)
   useEffect(() => {
     if (!fbUser) return;
@@ -2599,12 +2832,19 @@ function CollegeCards() {
   const suggestions = allBoardIds.length>=2 ? getSuggestions(allBoardIds, allBoardIds, triage.skipped) : [];
   const showSuggestCard = suggestions.length>0 && allBoardIds.length>suggestThreshold;
   const visibleSeq = React.useMemo(() => {
+    // Pack mode: show only pack schools
+    if (packMode) {
+      const packCards = (packMode.schoolIds || [])
+        .map(id => SCHOOLS.find(s => s.id === id))
+        .filter(Boolean)
+        .map(s => ({ t: "school", s }));
+      return [{ t: "pack_intro" }, ...packCards];
+    }
     if(!showSuggestCard) return SEQ;
-    // Insert after 8th school card
     const idx = SEQ.findIndex((x,i)=>x.t==="school"&&SEQ.slice(0,i+1).filter(y=>y.t==="school").length===8);
     if(idx<0) return [...SEQ, {t:"suggest",suggestions:suggestions}];
     return [...SEQ.slice(0,idx+1), {t:"suggest",suggestions:suggestions}, ...SEQ.slice(idx+1)];
-  }, [suggestions.length, suggestThreshold, allBoardIds.length, triage.skipped.length]);
+  }, [suggestions.length, suggestThreshold, allBoardIds.length, triage.skipped.length, packMode]);
 
   const cur = visibleSeq[seqIdx % visibleSeq.length];
   const school = cur?.t==="school" ? cur.s : null;
@@ -2670,6 +2910,18 @@ function CollegeCards() {
   }, []);
 
   // Triage actions
+  // Track pack reactions when swiping a pack
+  const recordPackReaction = (id, reaction) => {
+    if (!packMode) return;
+    setPackReactions(r => ({ ...r, [id]: reaction }));
+    // Check if done with all pack schools
+    setPackReactions(r => {
+      const updated = { ...r, [id]: reaction };
+      if (packMode.schoolIds.every(sid => updated[sid])) setPackDone(true);
+      return updated;
+    });
+  };
+
   const markInterested = id => {
     if(allBoardIds.includes(id)) return;
     setBoard(b=>({...b,undecided:[...b.undecided,id],rankOrder:[...b.rankOrder,id]}));
@@ -2680,6 +2932,7 @@ function CollegeCards() {
     setTimeout(() => setWhyPrompt(id), 800);
   };
   const markMaybe = id => {
+    recordPackReaction(id, "maybe");
     setTriage(t => {
       if(t.maybe.includes(id)) {
         track("school_triaged", { school_id: id, action: "unmaybe", session_views: sessionViews.current });
@@ -2693,6 +2946,7 @@ function CollegeCards() {
     });
   };
   const markSkip = id => {
+    recordPackReaction(id, "skip");
     setTriage(t => {
       if(t.skipped.includes(id)) {
         track("school_triaged", { school_id: id, action: "unskip", session_views: sessionViews.current });
@@ -3088,6 +3342,12 @@ function CollegeCards() {
             🔍
           </button>
           <div style={{display:"flex",gap:8,alignItems:"flex-start"}}>
+            {fbUser && (
+              <button onClick={()=>setPackView("create")} style={{background:"rgba(212,175,55,0.12)",border:"1.5px solid rgba(212,175,55,0.4)",borderRadius:8,padding:"3px 8px",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:1,flexShrink:0}}>
+                <span style={{fontSize:15}}>📤</span>
+                <span style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:7,color:"#D4AF37",fontWeight:700,letterSpacing:"0.04em"}}>SHARE</span>
+              </button>
+            )}
             <div onClick={()=>setView("browse")} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2,cursor:"pointer"}}>
               <div style={{background:view==="browse"?"rgba(212,175,55,0.12)":(darkMode?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.06)"),border:"2px solid "+(view==="browse"?"#D4AF37":darkMode?"rgba(255,255,255,0.22)":"rgba(0,0,0,0.18)"),borderRadius:8,width:36,height:36,display:"flex",alignItems:"center",justifyContent:"center",fontSize:19}}>🏫</div>
               <span style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:8,color:view==="browse"?"#D4AF37":darkMode?"rgba(255,255,255,0.4)":"rgba(0,0,0,0.5)",fontWeight:700,letterSpacing:"0.04em"}}>BROWSE</span>
@@ -3139,6 +3399,29 @@ function CollegeCards() {
           {/* Card with overlaid arrows */}
           <div style={{position:"relative",width:340}}>
             <button onClick={prev} style={{position:"absolute",left:-14,top:240,zIndex:10,background:"rgba(0,0,0,0.6)",border:"1px solid rgba(255,255,255,0.18)",borderRadius:"50%",width:30,height:30,cursor:"pointer",color:"#fff",fontSize:18,display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
+            {/* Pack intro card */}
+            {cur?.t==="pack_intro" && packMode && (
+              <div style={{width:"100%",height:"100%",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"28px 24px",textAlign:"center"}}>
+                <div style={{fontSize:48,marginBottom:12}}>📦</div>
+                <div style={{fontFamily:"'Playfair Display',serif",fontWeight:700,fontSize:20,color:darkMode?"#fff":"#1a1208",marginBottom:8}}>
+                  {packMode.fromName} sent you a school pack
+                </div>
+                <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:13,color:darkMode?"rgba(255,255,255,0.6)":"rgba(0,0,0,0.6)",marginBottom:packMode.note?16:24,lineHeight:1.5}}>
+                  {packMode.schoolIds?.length} school{packMode.schoolIds?.length!==1?"s":""} to explore
+                </div>
+                {packMode.note && (
+                  <div style={{background:darkMode?"rgba(212,175,55,0.08)":"rgba(212,175,55,0.12)",border:"1px solid rgba(212,175,55,0.25)",borderRadius:12,padding:"12px 16px",marginBottom:24,fontFamily:"'Source Sans 3',sans-serif",fontSize:13,color:darkMode?"rgba(255,255,255,0.8)":"rgba(0,0,0,0.7)",lineHeight:1.5,fontStyle:"italic",maxWidth:340}}>
+                    "{packMode.note}"
+                  </div>
+                )}
+                <button onClick={next} style={{background:"linear-gradient(135deg,#f4dd85,#d1a834)",border:"none",borderRadius:14,padding:"13px 32px",cursor:"pointer",fontFamily:"'Source Sans 3',sans-serif",fontSize:15,fontWeight:700,color:"#241805"}}>
+                  Start swiping →
+                </button>
+                <button onClick={()=>setPackMode(null)} style={{marginTop:12,background:"none",border:"none",cursor:"pointer",fontFamily:"'Source Sans 3',sans-serif",fontSize:12,color:darkMode?"rgba(255,255,255,0.3)":"rgba(0,0,0,0.3)"}}>
+                  Skip pack, go to full browse
+                </button>
+              </div>
+            )}
             {cur?.t==="welcome" && (
               <div style={{transform:`scale(${cardScale})`,transformOrigin:"top center",width:340,height:530,marginBottom:`${530*(cardScale-1)}px`}}>
                 <WelcomeCard onDismiss={next}/>
@@ -3230,6 +3513,40 @@ function CollegeCards() {
           onUnskip={unSkip}
           onUnskipAll={unSkipAll}
         />
+      )}
+
+      {/* PACK MODALS */}
+      {packDone && packMode && (
+        <PackDoneModal
+          packMode={packMode} fbUser={fbUser} darkMode={darkMode}
+          onSubmit={async()=>{ await submitPackReactions(); setPackMode(null); setPackDone(false); }}
+          onSkip={()=>{ setPackMode(null); setPackDone(false); }}
+        />
+      )}
+      {packView==="create" && fbUser && (
+        <PackCreatorModal
+          board={board} allBoardIds={allBoardIds} darkMode={darkMode}
+          onClose={()=>setPackView("idle")}
+          onCreate={async(schools,note)=>{
+            setPackSchools(schools); setPackNote(note);
+            const params = new URLSearchParams(window.location.search);
+            const packData = {
+              schoolIds: schools, note: note.trim(),
+              fromName: fbUser.displayName || fbUser.email.split("@")[0],
+              fromUid: fbUser.uid,
+              createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+              recipients: {}
+            };
+            const ref = await window._fbDb.collection("packs").add(packData);
+            const url = window.location.origin + window.location.pathname + "?pack=" + ref.id;
+            setPackSent({ packId: ref.id, url });
+            try { await navigator.clipboard.writeText(url); } catch(e) {}
+            setPackView("sent");
+          }}
+        />
+      )}
+      {packView==="sent" && packSent && (
+        <PackSentModal url={packSent.url} darkMode={darkMode} onClose={()=>{ setPackView("idle"); setPackSent(null); }}/>
       )}
 
       {/* FOOTER — attribution + feedback only, no nav */}
