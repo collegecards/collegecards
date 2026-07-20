@@ -1348,7 +1348,7 @@ function SuggestionCard({ suggestions, onDismiss, onHide, onExpand }) {
   );
 }
 
-function CollegeCard({ school, flipped, onFlip, triageStatus, onSkip, onMaybe, onInterested, onRemove }) {
+function CollegeCard({ school, flipped, onFlip, triageStatus, onSkip, onMaybe, onInterested, onRemove, onVisit, visited }) {
   const [photoIdx, setPhotoIdx] = useState(0);
   const [fading, setFading] = useState(false);
   const [hovStat, setHovStat] = useState(null);
@@ -1491,9 +1491,16 @@ function CollegeCard({ school, flipped, onFlip, triageStatus, onSkip, onMaybe, o
 
           {/* Share + Dots */}
           <div style={{position:"absolute",top:10,right:10,display:"flex",flexDirection:"column",alignItems:"flex-end",gap:8,zIndex:4}}>
-            <button onClick={e=>{e.stopPropagation();doShare(e);}} style={{background:"rgba(0,0,0,0.28)",border:"1px solid rgba(255,255,255,0.18)",borderRadius:6,width:22,height:22,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer"}}>
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.75)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
-            </button>
+            <div style={{display:"flex",gap:5}}>
+              <button onClick={e=>{e.stopPropagation();onVisit&&onVisit(school.id);}}
+                title={visited?"Edit campus visit":"Log campus visit"}
+                style={{background:visited?"rgba(212,175,55,0.75)":"rgba(0,0,0,0.28)",border:"1px solid "+(visited?"rgba(212,175,55,0.9)":"rgba(255,255,255,0.18)"),borderRadius:6,width:22,height:22,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",fontSize:11}}>
+                📍
+              </button>
+              <button onClick={e=>{e.stopPropagation();doShare(e);}} style={{background:"rgba(0,0,0,0.28)",border:"1px solid rgba(255,255,255,0.18)",borderRadius:6,width:22,height:22,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer"}}>
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.75)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+              </button>
+            </div>
             <div style={{display:"flex",gap:5}}>
               {school.scenes.map((_,i)=>(
                 <div key={i} onClick={e=>{e.stopPropagation();setPhotoIdx(i);}} style={{width:7,height:7,borderRadius:"50%",background:i===photoIdx?"#e2bb47":"rgba(255,255,255,0.3)",cursor:"pointer"}}/>
@@ -1920,7 +1927,7 @@ function FullCardModal({ schoolId, onClose, onSkip, onMaybe, onInterested, onRem
   return (
     <div onClick={onClose} style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.88)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:200,padding:16}}>
       <div onClick={e=>e.stopPropagation()} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:10}}>
-        <CollegeCard school={s} flipped={flipped} onFlip={setFlipped}
+        <CollegeCard school={s} flipped={flipped} onFlip={setFlipped} onVisit={id=>setVisitModalId(id)} visited={!!(s&&visits&&visits[s.id])}
           triageStatus={triageStatus||null}
           onSkip={()=>{skip(s.id);}}
           onMaybe={()=>{maybe(s.id);}}
@@ -1936,7 +1943,7 @@ function FullCardModal({ schoolId, onClose, onSkip, onMaybe, onInterested, onRem
 const LANE_COLORS = {reach:"#e05050",match:"#D4AF37",safety:"#50c878",undecided:"#8888aa"};
 const LANE_LABELS = {reach:"Reach",match:"Match",safety:"Safety",undecided:"TBD"};
 
-function MiniCard({ school, lane, onRemove, onMoveLane, onExpand, isDragging, dragHandlers }) {
+function MiniCard({ school, lane, onRemove, onMoveLane, onExpand, isDragging, dragHandlers, visited, onVisit }) {
   const color = LANE_COLORS[lane];
   const allLanes = ["reach","match","safety","undecided"];
   return (
@@ -1945,7 +1952,7 @@ function MiniCard({ school, lane, onRemove, onMoveLane, onExpand, isDragging, dr
       <div style={{display:"flex",alignItems:"center",gap:8,cursor:"pointer"}} onClick={e=>{e.stopPropagation();onExpand(school.id);}}>
         <span style={{fontSize:20}}>{school.mascot}</span>
         <div style={{flex:1,minWidth:0}}>
-          <div style={{fontFamily:"'Playfair Display',serif",fontWeight:900,fontSize:13,color:"#fff",lineHeight:1.1,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{school.name}</div>
+          <div style={{fontFamily:"'Playfair Display',serif",fontWeight:900,fontSize:13,color:"#fff",lineHeight:1.1,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{visited && <span style={{fontSize:9,marginRight:3}}>📍</span>}{school.name}</div>
           <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:8,color:school.accentColor,marginTop:1}}>{school.subtitle}</div>
         </div>
         <button onClick={e=>{e.stopPropagation();onRemove(school.id);}} style={{background:"rgba(80,80,80,0.4)",border:"1px solid rgba(255,60,60,0.3)",borderRadius:5,width:22,height:22,cursor:"pointer",color:"#ff8888",fontSize:12,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontWeight:700}}>✕</button>
@@ -1991,7 +1998,7 @@ function MiniCard({ school, lane, onRemove, onMoveLane, onExpand, isDragging, dr
   );
 }
 // ─── BOARD VIEW ────────────────────────────────────────────────────────────
-function BoardView({ board, onRemove, onMoveLane, onReorder, onRankReorder, onRankMove, darkMode, suggestions, onJumpToSuggest, onSkip, onMaybe, onInterested, triage, allBoardIds, onSharePack }) {
+function BoardView({ board, onRemove, onMoveLane, onReorder, onRankReorder, onRankMove, darkMode, suggestions, onJumpToSuggest, onSkip, onMaybe, onInterested, triage, allBoardIds, onSharePack, visits, onVisit }) {
   const [subView, setSubView] = useState("classify");
   const [dragging, setDragging] = useState(null);
   const [dragOver, setDragOver] = useState(null);
@@ -2079,7 +2086,7 @@ function BoardView({ board, onRemove, onMoveLane, onReorder, onRankReorder, onRa
                     <div key={school.id}
                       onDragOver={e=>{e.preventDefault();e.stopPropagation();setDragOver({lane:lane.key,idx});}}
                       style={{outline:dragOver?.lane===lane.key&&dragOver?.idx===idx&&dragging?.id!==school.id?"2px dashed "+(lane.color):"none",borderRadius:12}}>
-                      <MiniCard school={school} lane={lane.key} onRemove={onRemove} onMoveLane={onMoveLane} onExpand={setExpandId}
+                      <MiniCard school={school} lane={lane.key} onRemove={onRemove} onMoveLane={onMoveLane} onExpand={setExpandId} visited={!!(visits&&visits[school.id])} onVisit={onVisit}
                         isDragging={dragging?.id===school.id}
                         dragHandlers={{draggable:true,onDragStart:()=>setDragging({id:school.id,fromLane:lane.key}),onDragEnd:handleDrop}}/>
                     </div>
@@ -2111,6 +2118,40 @@ function BoardView({ board, onRemove, onMoveLane, onReorder, onRankReorder, onRa
       )}
 
       {/* RANK VIEW */}
+      {/* Visited schools section */}
+      {Object.keys(visits||{}).length > 0 && (
+        <div style={{padding:"0 14px 16px"}}>
+          <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:10,fontWeight:700,color:darkMode?"rgba(255,255,255,0.4)":"rgba(0,0,0,0.4)",letterSpacing:"0.08em",marginBottom:10,marginTop:4}}>
+            📍 VISITED CAMPUSES ({Object.keys(visits).length})
+          </div>
+          {Object.entries(visits).map(([schoolId, visit]) => {
+            const s = SCHOOLS.find(x => x.id === schoolId);
+            if (!s) return null;
+            const gutEmoji = {definitely:"😍",maybe:"🤔",probably_not:"😬"}[visit.gutCheck] || "📍";
+            return (
+              <div key={schoolId} onClick={()=>onVisit&&onVisit(schoolId)}
+                style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",borderRadius:12,marginBottom:8,cursor:"pointer",background:darkMode?"rgba(212,175,55,0.06)":"rgba(212,175,55,0.08)",border:"1px solid rgba(212,175,55,0.2)"}}>
+                <span style={{fontSize:22,flexShrink:0}}>{gutEmoji}</span>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:13,fontWeight:600,color:darkMode?"#fff":"#1a1208",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{s.name}</div>
+                  <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:10,color:darkMode?"rgba(255,255,255,0.45)":"rgba(0,0,0,0.45)",marginTop:1}}>
+                    {visit.date} · {visit.threeWords || "Tap to view notes"}
+                  </div>
+                </div>
+                {visit.vibes && (
+                  <div style={{display:"flex",gap:2,flexShrink:0}}>
+                    {[1,2,3,4,5].map(i=>(
+                      <div key={i} style={{width:10,height:6,borderRadius:2,background:i<=Math.round((Object.values(visit.vibes).reduce((a,b)=>a+b,0)/4))?"#D4AF37":"rgba(255,255,255,0.15)"}}/>
+                    ))}
+                  </div>
+                )}
+                <span style={{fontSize:12,color:darkMode?"rgba(255,255,255,0.3)":"rgba(0,0,0,0.3)"}}>›</span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
       {subView==="rank" && (
         <div style={{flex:1,display:"flex",flexDirection:"column",overflow:"hidden"}}>
           {/* Share button — sticky at top */}
@@ -2424,6 +2465,146 @@ function getSuggestions(interestedIds, allBoardIds, skippedIds) {
   return candidates.slice(0,3).map(x=>x.s);
 }
 
+
+// ─── VISIT MODAL ───────────────────────────────────────────────────────────
+function VisitModal({ school, existing, darkMode, onSave, onDelete, onClose }) {
+  const today = new Date().toISOString().split("T")[0];
+  const [date, setDate] = React.useState(existing?.date || today);
+  const [gutCheck, setGutCheck] = React.useState(existing?.gutCheck || "");
+  const [vibes, setVibes] = React.useState(existing?.vibes || {schoolSpirit:0,academics:0,socialScene:0,campusBeauty:0});
+  const [pros, setPros] = React.useState(existing?.pros || "");
+  const [cons, setCons] = React.useState(existing?.cons || "");
+  const [memorable, setMemorable] = React.useState(existing?.memorable || "");
+  const [threeWords, setThreeWords] = React.useState(existing?.threeWords || "");
+
+  const bg = darkMode ? "#120c02" : "#f8f4ec";
+  const cardBg = darkMode ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.04)";
+  const border = "1px solid rgba(212,175,55,0.2)";
+  const textColor = darkMode ? "#fff" : "#1a1208";
+  const subColor = darkMode ? "rgba(255,255,255,0.45)" : "rgba(0,0,0,0.45)";
+  const inputStyle = {width:"100%",background:cardBg,border:border,borderRadius:10,padding:"10px 12px",color:textColor,fontFamily:"'Source Sans 3',sans-serif",fontSize:13,outline:"none",boxSizing:"border-box"};
+
+  const vibeLabels = [
+    {key:"schoolSpirit", label:"School Spirit", emoji:"🐾"},
+    {key:"academics",    label:"Academics",     emoji:"📚"},
+    {key:"socialScene",  label:"Social Scene",  emoji:"🎉"},
+    {key:"campusBeauty", label:"Campus Beauty", emoji:"🏛️"},
+  ];
+
+  const gutOptions = [
+    {val:"definitely",   label:"Definitely", emoji:"😍"},
+    {val:"maybe",        label:"Maybe",      emoji:"🤔"},
+    {val:"probably_not", label:"Probably Not",emoji:"😬"},
+  ];
+
+  const handleSave = () => {
+    onSave({ date, gutCheck, vibes, pros: pros.trim(), cons: cons.trim(), memorable: memorable.trim(), threeWords: threeWords.trim(), savedAt: new Date().toISOString() });
+  };
+
+  return (
+    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.75)",zIndex:10000,display:"flex",alignItems:"flex-end",justifyContent:"center"}} onClick={e=>{if(e.target===e.currentTarget)onClose();}}>
+      <div style={{width:"100%",maxWidth:430,background:bg,borderRadius:"20px 20px 0 0",maxHeight:"92vh",display:"flex",flexDirection:"column",overflow:"hidden"}}>
+
+        {/* Header */}
+        <div style={{padding:"16px 18px 12px",borderBottom:border,display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0}}>
+          <div>
+            <div style={{fontFamily:"'Playfair Display',serif",fontWeight:700,fontSize:17,color:textColor}}>
+              📍 {existing ? "Edit" : "Log"} Campus Visit
+            </div>
+            <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:12,color:subColor,marginTop:2}}>{school.name}</div>
+          </div>
+          <button onClick={onClose} style={{background:"none",border:"none",cursor:"pointer",fontSize:20,color:subColor,padding:"2px 6px"}}>✕</button>
+        </div>
+
+        <div style={{flex:1,overflowY:"auto",padding:"16px 18px"}}>
+
+          {/* Date */}
+          <div style={{marginBottom:16}}>
+            <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:10,fontWeight:700,color:subColor,letterSpacing:"0.08em",marginBottom:6}}>VISIT DATE</div>
+            <input type="date" value={date} onChange={e=>setDate(e.target.value)}
+              style={{...inputStyle, colorScheme: darkMode ? "dark" : "light"}}/>
+          </div>
+
+          {/* Gut check */}
+          <div style={{marginBottom:16}}>
+            <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:10,fontWeight:700,color:subColor,letterSpacing:"0.08em",marginBottom:8}}>COULD YOU SEE YOURSELF HERE?</div>
+            <div style={{display:"flex",gap:8}}>
+              {gutOptions.map(opt => (
+                <button key={opt.val} onClick={()=>setGutCheck(opt.val)}
+                  style={{flex:1,padding:"10px 6px",borderRadius:10,border:"2px solid "+(gutCheck===opt.val?"#D4AF37":darkMode?"rgba(255,255,255,0.12)":"rgba(0,0,0,0.1)"),background:gutCheck===opt.val?"rgba(212,175,55,0.15)":cardBg,cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:4}}>
+                  <span style={{fontSize:22}}>{opt.emoji}</span>
+                  <span style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:10,fontWeight:700,color:gutCheck===opt.val?"#D4AF37":subColor}}>{opt.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Vibe ratings — post visit */}
+          <div style={{marginBottom:16}}>
+            <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:10,fontWeight:700,color:subColor,letterSpacing:"0.08em",marginBottom:8}}>RATE YOUR VISIT</div>
+            {vibeLabels.map(({key,label,emoji}) => (
+              <div key={key} style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
+                <span style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:13,color:textColor,width:130}}>{emoji} {label}</span>
+                <div style={{display:"flex",gap:4}}>
+                  {[1,2,3,4,5].map(i => (
+                    <div key={i} onClick={()=>setVibes(v=>({...v,[key]:i}))}
+                      style={{width:30,height:18,borderRadius:4,cursor:"pointer",background:i<=vibes[key]?"linear-gradient(180deg,#f8e38f,#cc9828)":"rgba(255,255,255,0.1)",border:"1px solid "+(i<=vibes[key]?"rgba(212,175,55,0.4)":"rgba(255,255,255,0.06)"),transition:"all 0.1s"}}/>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Three words */}
+          <div style={{marginBottom:12}}>
+            <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:10,fontWeight:700,color:subColor,letterSpacing:"0.08em",marginBottom:6}}>THREE WORDS THAT COME TO MIND</div>
+            <input value={threeWords} onChange={e=>setThreeWords(e.target.value)}
+              placeholder="e.g. vibrant, academic, cozy" style={inputStyle}/>
+          </div>
+
+          {/* Most memorable */}
+          <div style={{marginBottom:12}}>
+            <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:10,fontWeight:700,color:subColor,letterSpacing:"0.08em",marginBottom:6}}>MOST MEMORABLE MOMENT</div>
+            <input value={memorable} onChange={e=>setMemorable(e.target.value)}
+              placeholder="What stood out most?" style={inputStyle}/>
+          </div>
+
+          {/* Pros / Cons */}
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:16}}>
+            <div>
+              <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:10,fontWeight:700,color:"#50c878",letterSpacing:"0.08em",marginBottom:6}}>✅ PROS</div>
+              <textarea value={pros} onChange={e=>setPros(e.target.value)}
+                placeholder="What did you love?" rows={3}
+                style={{...inputStyle,resize:"none",lineHeight:1.4}}/>
+            </div>
+            <div>
+              <div style={{fontFamily:"'Source Sans 3',sans-serif",fontSize:10,fontWeight:700,color:"#f08080",letterSpacing:"0.08em",marginBottom:6}}>❌ CONS</div>
+              <textarea value={cons} onChange={e=>setCons(e.target.value)}
+                placeholder="What gave you pause?" rows={3}
+                style={{...inputStyle,resize:"none",lineHeight:1.4}}/>
+            </div>
+          </div>
+
+          {existing && (
+            <button onClick={()=>{onDelete();onClose();}}
+              style={{width:"100%",background:"none",border:"1px solid rgba(240,128,128,0.3)",borderRadius:10,padding:"8px",cursor:"pointer",fontFamily:"'Source Sans 3',sans-serif",fontSize:12,color:"rgba(240,128,128,0.7)",marginBottom:8}}>
+              Delete visit log
+            </button>
+          )}
+        </div>
+
+        {/* Save */}
+        <div style={{padding:"12px 18px",borderTop:border,flexShrink:0}}>
+          <button onClick={handleSave}
+            style={{width:"100%",height:48,borderRadius:14,border:"none",cursor:"pointer",background:"linear-gradient(135deg,#f4dd85,#d1a834)",fontFamily:"'Source Sans 3',sans-serif",fontSize:14,fontWeight:700,color:"#241805"}}>
+            {existing ? "Update Visit" : "Save Visit Log"} 📍
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── PACK CREATOR MODAL ────────────────────────────────────────────────────
 function PackCreatorModal({ board, allBoardIds, onClose, onCreate, darkMode }) {
   const [schools, setSchools] = React.useState([]);
@@ -2597,6 +2778,8 @@ function CollegeCards() {
   const [myPacks, setMyPacks] = useState([]);
   const [packReactions, setPackReactions] = useState({}); // schoolId -> reaction for current pack
   const [packDone, setPackDone] = useState(false);
+  const [visits, setVisits] = useState({});        // schoolId -> visit data
+  const [visitModalId, setVisitModalId] = useState(null); // open visit modal for this schoolId
   // Email auth state
   const [emailStep, setEmailStep] = useState("idle"); // idle | email | password | creating
   const [emailVal, setEmailVal] = useState("");
@@ -2684,15 +2867,62 @@ function CollegeCards() {
         if (data.board)  setBoard(data.board);
         if (data.notes)  setNotes(data.notes);
       }
+      // Load visits subcollection
+      const visitsSnap = await window._fbDb.collection("users").doc(uid)
+        .collection("visits").get();
+      const visitsData = {};
+      visitsSnap.forEach(d => { visitsData[d.id] = d.data(); });
+      if (Object.keys(visitsData).length > 0) setVisits(visitsData);
     } catch(e) { console.error("Firestore load error:", e); }
     finally { setSyncing(false); }
   };
+
+  // Load visits from localStorage for guests
+  useEffect(() => {
+    if (fbUser) return;
+    try {
+      const v = localStorage.getItem("cc_visits");
+      if (v) setVisits(JSON.parse(v));
+    } catch(e) {}
+  }, []);
 
   // Save data to Firestore
   const saveToFirestore = async (uid, data) => {
     try {
       await window._fbDb.collection("users").doc(uid).set(data, { merge: true });
     } catch(e) { console.error("Firestore save error:", e); }
+  };
+
+  // Save a visit
+  const saveVisit = async (schoolId, visitData) => {
+    const updated = { ...visits, [schoolId]: visitData };
+    setVisits(updated);
+    // Auto-add to board if not already there
+    if (!allBoardIds.includes(schoolId)) {
+      markInterested(schoolId);
+    }
+    if (fbUser) {
+      try {
+        await window._fbDb.collection("users").doc(fbUser.uid)
+          .collection("visits").doc(schoolId).set(visitData);
+      } catch(e) { console.error("Visit save error:", e); }
+    } else {
+      try { localStorage.setItem("cc_visits", JSON.stringify(updated)); } catch(e) {}
+    }
+  };
+
+  const deleteVisit = async (schoolId) => {
+    const updated = { ...visits };
+    delete updated[schoolId];
+    setVisits(updated);
+    if (fbUser) {
+      try {
+        await window._fbDb.collection("users").doc(fbUser.uid)
+          .collection("visits").doc(schoolId).delete();
+      } catch(e) {}
+    } else {
+      try { localStorage.setItem("cc_visits", JSON.stringify(updated)); } catch(e) {}
+    }
   };
 
   // Close user menu on outside click (setTimeout prevents open-click from immediately closing)
@@ -2772,7 +3002,7 @@ function CollegeCards() {
     if (!packMode?.packId) return;
     try {
       const recipientData = {
-        openedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        openedAt: new Date().toISOString(),
         sharedBack: true,
         reactions: packReactions,
         name: fbUser ? (fbUser.displayName || fbUser.email) : "Anonymous"
@@ -3448,7 +3678,7 @@ function CollegeCards() {
 
             {cur?.t==="school"  && (
               <div style={{transform:`scale(${cardScale})`,transformOrigin:"top center",width:340,height:530,marginBottom:`${530*(cardScale-1)}px`}}>
-                <CollegeCard key={school.id} school={school} flipped={cardFlipped} onFlip={setCardFlipped}
+                <CollegeCard key={school.id} school={school} flipped={cardFlipped} onFlip={setCardFlipped} onVisit={id=>setVisitModalId(id)} visited={!!(school&&visits[school.id])}
                   triageStatus={triageStatus}
                   onSkip={()=>markSkip(school.id)}
                   onMaybe={()=>markMaybe(school.id)}
@@ -3494,7 +3724,7 @@ function CollegeCards() {
 
       {view==="board" && (
         <div style={{flex:1,display:"flex",flexDirection:"column",overflowX:"hidden"}}>
-          <BoardView board={board} onRemove={removeFromBoard} onMoveLane={moveLane} onReorder={reorder} onRankReorder={rankReorder} onRankMove={rankMove} darkMode={darkMode} suggestions={suggestions} onJumpToSuggest={id=>{setSuggestReturnIdx(true);jumpTo(id);setView("browse");}} onSkip={markSkip} onMaybe={markMaybe} onInterested={markInterested} triage={triage} allBoardIds={allBoardIds} onSharePack={fbUser ? ()=>setPackView("create") : null}/>
+          <BoardView board={board} onRemove={removeFromBoard} onMoveLane={moveLane} onReorder={reorder} onRankReorder={rankReorder} onRankMove={rankMove} darkMode={darkMode} suggestions={suggestions} onJumpToSuggest={id=>{setSuggestReturnIdx(true);jumpTo(id);setView("browse");}} onSkip={markSkip} onMaybe={markMaybe} onInterested={markInterested} triage={triage} allBoardIds={allBoardIds} onSharePack={fbUser ? ()=>setPackView("create") : null} visits={visits} onVisit={id=>setVisitModalId(id)}/>
         </div>
       )}
 
@@ -3519,6 +3749,22 @@ function CollegeCards() {
       )}
 
       {/* PACK MODALS */}
+      {/* VISIT MODAL */}
+      {visitModalId && (() => {
+        const s = SCHOOLS.find(x => x.id === visitModalId);
+        if (!s) return null;
+        return (
+          <VisitModal
+            school={s}
+            existing={visits[visitModalId] || null}
+            darkMode={darkMode}
+            onSave={async(data) => { await saveVisit(visitModalId, data); setVisitModalId(null); }}
+            onDelete={() => { deleteVisit(visitModalId); }}
+            onClose={() => setVisitModalId(null)}
+          />
+        );
+      })()}
+
       {packDone && packMode && (
         <PackDoneModal
           packMode={packMode} fbUser={fbUser} darkMode={darkMode}
